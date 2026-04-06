@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE vehicletypes SYSTEM "../UrbanEV-v2-master/scenarios/dtd/vehicletypes.dtd">
+<vehicletypes>
+    <type name="tesla_model_y" consumption="21.14" max_charging_rate="1.0" mass="1700" width="1.85" height="1.50" length="4.50" cw="0.30" ft="0.01" cb="0.191" spr="0.935"/>
+    <type name="nissan_leaf" consumption="18.64" max_charging_rate="1.0" mass="1700" width="1.85" height="1.50" length="4.50" cw="0.30" ft="0.01" cb="0.191" spr="0.935"/>
+    <type name="chevy_bolt" consumption="17.92" max_charging_rate="1.0" mass="1700" width="1.85" height="1.50" length="4.50" cw="0.30" ft="0.01" cb="0.191" spr="0.935"/>
+    <type name="vw_id4" consumption="20.00" max_charging_rate="1.0" mass="1700" width="1.85" height="1.50" length="4.50" cw="0.30" ft="0.01" cb="0.191" spr="0.935"/>
+</vehicletypes>

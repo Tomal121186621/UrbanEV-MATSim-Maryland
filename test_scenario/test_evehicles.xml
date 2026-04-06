@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE vehicles SYSTEM "dtd/electric_vehicles_v1.dtd">
+<vehicles>
+  <vehicle id="tesla_1" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_2" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_3" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_4" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_5" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_6" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_7" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_8" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_9" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="tesla_10" battery_capacity="75.0" initial_soc="45.0" charger_types="L1,L2,DCFC,DCFC_TESLA" vehicle_type="tesla_model_y"/>
+  <vehicle id="leaf_hi_1" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_2" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_3" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_4" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_5" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_6" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_7" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_8" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_9" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_hi_10" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="mf_apt_1" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_2" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_3" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_4" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_5" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_6" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_7" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_8" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_9" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="mf_apt_10" battery_capacity="65.0" initial_soc="39.0" charger_types="L1,L2,DCFC" vehicle_type="chevy_bolt"/>
+  <vehicle id="leaf_lo_1" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_2" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_3" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_4" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_5" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_6" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_7" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_8" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_9" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="leaf_lo_10" battery_capacity="40.0" initial_soc="24.0" charger_types="L1,L2,DCFC" vehicle_type="nissan_leaf"/>
+  <vehicle id="id4_1" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_2" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_3" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_4" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_5" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_6" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_7" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_8" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_9" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+  <vehicle id="id4_10" battery_capacity="77.0" initial_soc="46.2" charger_types="L1,L2,DCFC" vehicle_type="vw_id4"/>
+</vehicles>

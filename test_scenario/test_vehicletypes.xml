@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<vehicleDefinitions xmlns="http://www.matsim.org/files/dtd"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.matsim.org/files/dtd http://www.matsim.org/files/dtd/vehicleDefinitions_v2.0.xsd">
+    <vehicleType id="tesla_model_y">
+        <attributes>
+            <attribute name="vehicleModel" class="java.lang.String">tesla_model_y</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+        <maximumVelocity meterPerSecond="44.44"/>
+    </vehicleType>
+    <vehicleType id="nissan_leaf">
+        <attributes>
+            <attribute name="vehicleModel" class="java.lang.String">nissan_leaf</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+        <maximumVelocity meterPerSecond="33.33"/>
+    </vehicleType>
+    <vehicleType id="chevy_bolt">
+        <attributes>
+            <attribute name="vehicleModel" class="java.lang.String">chevy_bolt</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+        <maximumVelocity meterPerSecond="33.33"/>
+    </vehicleType>
+    <vehicleType id="vw_id4">
+        <attributes>
+            <attribute name="vehicleModel" class="java.lang.String">vw_id4</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+        <maximumVelocity meterPerSecond="44.44"/>
+    </vehicleType>
+</vehicleDefinitions>

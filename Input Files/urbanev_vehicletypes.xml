@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE vehicletypes SYSTEM "../UrbanEV-v2-master/scenarios/dtd/vehicletypes.dtd">
+<!-- UrbanEV Sweden-format vehicle types for Maryland+DC simulation.
+     consumption = kWh/100km, derived from MATSim vehicletypes.xml energyConsumptionPerDistance (kWh/m) * 100000.
+     Physical params use representative EV defaults (mass, aero, drivetrain). -->
+<vehicletypes>
+    <type name="ariya"           consumption="20.50" max_charging_rate="1.0" mass="1950" width="1.85" height="1.55" length="4.60" cw="0.27" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="blazer_ev"       consumption="19.90" max_charging_rate="1.0" mass="2100" width="1.90" height="1.65" length="4.80" cw="0.30" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="bolt_ev/euv"     consumption="19.90" max_charging_rate="1.0" mass="1616" width="1.78" height="1.61" length="4.17" cw="0.32" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="bz4x"            consumption="17.40" max_charging_rate="1.0" mass="2000" width="1.86" height="1.65" length="4.69" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="cybertruck"      consumption="25.50" max_charging_rate="1.5" mass="3100" width="2.01" height="1.79" length="5.68" cw="0.34" ft="0.012" cb="0.191" spr="0.925"/>
+    <type name="eqb"             consumption="19.30" max_charging_rate="1.0" mass="2175" width="1.83" height="1.67" length="4.68" cw="0.31" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="eqe"             consumption="21.70" max_charging_rate="1.0" mass="2090" width="1.85" height="1.51" length="4.95" cw="0.22" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="eqs"             consumption="21.10" max_charging_rate="1.0" mass="2585" width="1.93" height="1.51" length="5.22" cw="0.20" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="equinox_ev"      consumption="19.30" max_charging_rate="1.0" mass="2000" width="1.86" height="1.65" length="4.65" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="ev6"             consumption="18.00" max_charging_rate="1.5" mass="1985" width="1.89" height="1.55" length="4.69" cw="0.28" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="ev9"             consumption="25.50" max_charging_rate="1.5" mass="2620" width="1.98" height="1.79" length="5.01" cw="0.28" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="f_150_lightning" consumption="29.80" max_charging_rate="1.0" mass="2948" width="2.00" height="1.96" length="5.92" cw="0.40" ft="0.013" cb="0.191" spr="0.920"/>
+    <type name="hummer_ev"       consumption="39.10" max_charging_rate="1.0" mass="4111" width="2.20" height="2.01" length="5.51" cw="0.44" ft="0.014" cb="0.191" spr="0.915"/>
+    <type name="i4"              consumption="18.60" max_charging_rate="1.0" mass="2215" width="1.85" height="1.45" length="4.78" cw="0.24" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="i5"              consumption="19.90" max_charging_rate="1.0" mass="2385" width="1.90" height="1.50" length="4.95" cw="0.25" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="id.4"            consumption="18.60" max_charging_rate="1.0" mass="2124" width="1.85" height="1.64" length="4.58" cw="0.28" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="ioniq_5"         consumption="18.60" max_charging_rate="1.5" mass="1985" width="1.89" height="1.63" length="4.63" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="ioniq_6"         consumption="14.90" max_charging_rate="1.5" mass="1985" width="1.88" height="1.49" length="4.86" cw="0.21" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="ix"              consumption="24.20" max_charging_rate="1.0" mass="2585" width="1.97" height="1.70" length="4.95" cw="0.25" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="kona_electric"   consumption="18.00" max_charging_rate="1.0" mass="1685" width="1.82" height="1.57" length="4.35" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="leaf"            consumption="18.60" max_charging_rate="0.8" mass="1579" width="1.79" height="1.55" length="4.49" cw="0.28" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="lyriq"           consumption="24.90" max_charging_rate="1.0" mass="2603" width="1.98" height="1.62" length="4.99" cw="0.30" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="model_3"         consumption="16.20" max_charging_rate="2.0" mass="1836" width="1.85" height="1.44" length="4.69" cw="0.23" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="model_s"         consumption="17.40" max_charging_rate="2.0" mass="2162" width="1.96" height="1.44" length="4.98" cw="0.21" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="model_x"         consumption="21.10" max_charging_rate="2.0" mass="2458" width="2.00" height="1.68" length="5.04" cw="0.25" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="model_y"         consumption="18.00" max_charging_rate="2.0" mass="2003" width="1.92" height="1.62" length="4.75" cw="0.23" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="mustang_mach_e"  consumption="19.90" max_charging_rate="1.0" mass="2066" width="1.88" height="1.60" length="4.74" cw="0.30" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="niro_ev"         consumption="18.60" max_charging_rate="1.0" mass="1685" width="1.83" height="1.57" length="4.42" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="prologue"        consumption="20.50" max_charging_rate="1.0" mass="2100" width="1.90" height="1.65" length="4.80" cw="0.30" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="r1s"             consumption="25.50" max_charging_rate="1.0" mass="3221" width="2.08" height="1.84" length="5.10" cw="0.35" ft="0.012" cb="0.191" spr="0.925"/>
+    <type name="rz"              consumption="16.80" max_charging_rate="1.0" mass="1920" width="1.86" height="1.64" length="4.81" cw="0.27" ft="0.010" cb="0.191" spr="0.938"/>
+    <type name="silverado_ev"    consumption="29.80" max_charging_rate="1.0" mass="3856" width="2.03" height="1.98" length="5.89" cw="0.40" ft="0.013" cb="0.191" spr="0.920"/>
+    <type name="solterra"        consumption="19.90" max_charging_rate="1.0" mass="2000" width="1.86" height="1.65" length="4.69" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="taycan"          consumption="24.20" max_charging_rate="2.5" mass="2295" width="1.97" height="1.39" length="4.96" cw="0.22" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="zdx"             consumption="24.20" max_charging_rate="1.0" mass="2490" width="1.99" height="1.57" length="4.97" cw="0.26" ft="0.010" cb="0.191" spr="0.935"/>
+</vehicletypes>
