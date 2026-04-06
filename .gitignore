@@ -25,6 +25,7 @@ __pycache__/
 
 # Too large for GitHub LFS (>2GB per-file limit)
 Input Files/synthetic_pop_with_coordinates.csv
+Input Files/synthetic_bmc_v3_with_coords.csv
 
 # Simulation logs
 full_simulation.log

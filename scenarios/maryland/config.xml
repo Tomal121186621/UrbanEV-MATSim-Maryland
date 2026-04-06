@@ -55,9 +55,9 @@
 <module name="controler">
     <param name="outputDirectory" value="output/maryland_ev_enhanced/"/>
     <param name="firstIteration" value="0"/>
-    <param name="lastIteration" value="60"/>
+    <param name="lastIteration" value="10"/>
     <param name="writeEventsInterval" value="5"/>          <!-- events every 5 iters -->
-    <param name="writePlansInterval" value="10"/>          <!-- plans every 10 iters -->
+    <param name="writePlansInterval" value="5"/>           <!-- plans every 5 iters -->
     <param name="writeSnapshotsInterval" value="10"/>      <!-- Via snapshots every 10 iters -->
     <param name="mobsim" value="qsim"/>
     <param name="routingAlgorithmType" value="FastAStarLandmarks"/>
@@ -71,14 +71,14 @@
 <module name="qsim">
     <param name="startTime" value="00:00:00"/>
     <param name="endTime" value="240:00:00"/>
-    <param name="flowCapacityFactor" value="0.02"/>
-    <param name="storageCapacityFactor" value="0.06"/>
+    <param name="flowCapacityFactor" value="0.06"/>
+    <param name="storageCapacityFactor" value="0.18"/>
     <param name="numberOfThreads" value="14"/>    <!-- Ryzen 7 2700X: 16 threads, leave 2 for OS/GC -->
     <param name="mainMode" value="car"/>
     <param name="vehiclesSource" value="modeVehicleTypesFromVehiclesData"/>
     <param name="linkDynamics" value="FIFO"/>
     <param name="trafficDynamics" value="kinematicWaves"/>
-    <param name="stuckTime" value="300"/>
+    <param name="stuckTime" value="900"/>
     <param name="removeStuckVehicles" value="true"/>
     <param name="insertingWaitingVehiclesBeforeDrivingVehicles" value="true"/>
     <param name="snapshotperiod" value="00:15:00"/>  <!-- 15-min frames for Via visualizer -->

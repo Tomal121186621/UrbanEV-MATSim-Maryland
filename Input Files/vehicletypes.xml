@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.matsim.org/files/dtd http://www.matsim.org/files/dtd/vehicleDefinitions_v2.0.xsd">
 
-    <!-- Default vehicle type for "car" network mode (required by MATSim PrepareForSim) -->
+    <!-- Default vehicle type for "car" network mode -->
     <vehicleType id="car">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
@@ -17,9 +17,21 @@
     <vehicleType id="ariya">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">87</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">91</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000205</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Ariya</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="bev">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">85</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">BEV</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -29,21 +41,9 @@
     <vehicleType id="blazer_ev">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">85</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">119</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Blazer EV</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="bolt_ev/euv">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">66</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Bolt EV/EUV</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -74,48 +74,24 @@
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="eqb">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">67</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000193</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">EQB</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="eqe">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">91</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000217</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">EQE</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="eqs">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">108</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000211</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">EQS</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
     <vehicleType id="equinox_ev">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">85</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">100</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000193</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Equinox EV</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="escape_phev">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">14</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000230</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Escape PHEV</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -125,7 +101,7 @@
     <vehicleType id="ev6">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">74</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">77</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000180</attribute>
             <attribute name="vehicleModel" class="java.lang.String">EV6</attribute>
         </attributes>
@@ -137,7 +113,7 @@
     <vehicleType id="ev9">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">100</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">99</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000255</attribute>
             <attribute name="vehicleModel" class="java.lang.String">EV9</attribute>
         </attributes>
@@ -149,7 +125,7 @@
     <vehicleType id="f_150_lightning">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">131</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">165</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000298</attribute>
             <attribute name="vehicleModel" class="java.lang.String">F-150 Lightning</attribute>
         </attributes>
@@ -158,12 +134,24 @@
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="hummer_ev">
+    <vehicleType id="glc_350e">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">213</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000391</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Hummer EV</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">25</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000260</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">GLC 350e</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="grand_cherokee_4xe">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">17</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000290</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Grand Cherokee 4xe</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -173,21 +161,9 @@
     <vehicleType id="i4">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">81</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">84</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000186</attribute>
             <attribute name="vehicleModel" class="java.lang.String">i4</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="i5">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">81</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">i5</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -197,7 +173,7 @@
     <vehicleType id="id.4">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">77</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">81</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000186</attribute>
             <attribute name="vehicleModel" class="java.lang.String">ID.4</attribute>
         </attributes>
@@ -209,7 +185,7 @@
     <vehicleType id="ioniq_5">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">74</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">77</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000186</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Ioniq 5</attribute>
         </attributes>
@@ -221,45 +197,9 @@
     <vehicleType id="ioniq_6">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">74</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">77</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000149</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Ioniq 6</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="ix">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">105</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000242</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">iX</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="kona_electric">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">65</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000180</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Kona Electric</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="leaf">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">39</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000186</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Leaf</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -269,7 +209,7 @@
     <vehicleType id="lyriq">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">100</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">119</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000249</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Lyriq</attribute>
         </attributes>
@@ -281,21 +221,9 @@
     <vehicleType id="model_3">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">78</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">81</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000162</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Model 3</attribute>
-        </attributes>
-        <capacity seats="5" standingRoomInPersons="0"/>
-        <length meter="4.5"/>
-        <width meter="1.8"/>
-    </vehicleType>
-
-    <vehicleType id="model_s">
-        <attributes>
-            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">95</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000174</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Model S</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -305,7 +233,7 @@
     <vehicleType id="model_x">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">95</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">105</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000211</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Model X</attribute>
         </attributes>
@@ -317,7 +245,7 @@
     <vehicleType id="model_y">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">81</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">83</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000180</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Model Y</attribute>
         </attributes>
@@ -329,7 +257,7 @@
     <vehicleType id="mustang_mach_e">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">88</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">116</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Mustang Mach-E</attribute>
         </attributes>
@@ -338,12 +266,36 @@
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="niro_ev">
+    <vehicleType id="pacifica_phev">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">65</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000186</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Niro EV</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">16</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000310</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Pacifica PHEV</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="phev">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">16</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000260</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">PHEV</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="prius_prime">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">14</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000180</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Prius Prime</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
@@ -353,7 +305,7 @@
     <vehicleType id="prologue">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">85</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">100</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000205</attribute>
             <attribute name="vehicleModel" class="java.lang.String">Prologue</attribute>
         </attributes>
@@ -365,7 +317,7 @@
     <vehicleType id="r1s">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">135</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">144</attribute>
             <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000255</attribute>
             <attribute name="vehicleModel" class="java.lang.String">R1S</attribute>
         </attributes>
@@ -374,60 +326,84 @@
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="rz">
+    <vehicleType id="rav4_prime">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">72</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000168</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">RZ</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">18</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000230</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">RAV4 Prime</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="silverado_ev">
+    <vehicleType id="sportage_phev">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">205</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000298</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Silverado EV</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">14</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000250</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Sportage PHEV</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="solterra">
+    <vehicleType id="tucson_phev">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">71</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000199</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Solterra</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">14</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000240</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Tucson PHEV</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="taycan">
+    <vehicleType id="wrangler_4xe">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">84</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000242</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">Taycan</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">17</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000310</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">Wrangler 4xe</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
         <width meter="1.8"/>
     </vehicleType>
 
-    <vehicleType id="zdx">
+    <vehicleType id="x5_xdrive50e">
         <attributes>
             <attribute name="chargerTypes" class="java.lang.String">default</attribute>
-            <attribute name="engeryCapacity" class="java.lang.Double">102</attribute>
-            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000242</attribute>
-            <attribute name="vehicleModel" class="java.lang.String">ZDX</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">19</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000280</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">X5 xDrive50e</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="xc60_recharge">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">19</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000270</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">XC60 Recharge</attribute>
+        </attributes>
+        <capacity seats="5" standingRoomInPersons="0"/>
+        <length meter="4.5"/>
+        <width meter="1.8"/>
+    </vehicleType>
+
+    <vehicleType id="xc90_recharge">
+        <attributes>
+            <attribute name="chargerTypes" class="java.lang.String">default</attribute>
+            <attribute name="engeryCapacity" class="java.lang.Double">19</attribute>
+            <attribute name="energyConsumptionPerDistance" class="java.lang.Double">0.000290</attribute>
+            <attribute name="vehicleModel" class="java.lang.String">XC90 Recharge</attribute>
         </attributes>
         <capacity seats="5" standingRoomInPersons="0"/>
         <length meter="4.5"/>
