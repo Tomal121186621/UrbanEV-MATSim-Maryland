@@ -39,4 +39,20 @@
     <type name="solterra"        consumption="19.90" max_charging_rate="1.0" mass="2000" width="1.86" height="1.65" length="4.69" cw="0.29" ft="0.010" cb="0.191" spr="0.935"/>
     <type name="taycan"          consumption="24.20" max_charging_rate="2.5" mass="2295" width="1.97" height="1.39" length="4.96" cw="0.22" ft="0.009" cb="0.191" spr="0.940"/>
     <type name="zdx"             consumption="24.20" max_charging_rate="1.0" mass="2490" width="1.99" height="1.57" length="4.97" cw="0.26" ft="0.010" cb="0.191" spr="0.935"/>
+    <!-- Generic fallbacks -->
+    <type name="bev"             consumption="19.90" max_charging_rate="1.0" mass="1900" width="1.85" height="1.55" length="4.50" cw="0.28" ft="0.010" cb="0.191" spr="0.935"/>
+    <type name="phev"            consumption="26.00" max_charging_rate="0.5" mass="2000" width="1.85" height="1.55" length="4.60" cw="0.30" ft="0.011" cb="0.191" spr="0.930"/>
+    <!-- PHEV models -->
+    <type name="x5_xdrive50e"    consumption="28.00" max_charging_rate="0.5" mass="2510" width="2.00" height="1.75" length="4.92" cw="0.31" ft="0.012" cb="0.191" spr="0.925"/>
+    <type name="wrangler_4xe"    consumption="31.00" max_charging_rate="0.5" mass="2313" width="1.87" height="1.85" length="4.88" cw="0.45" ft="0.013" cb="0.191" spr="0.915"/>
+    <type name="grand_cherokee_4xe" consumption="29.00" max_charging_rate="0.5" mass="2450" width="1.96" height="1.80" length="4.91" cw="0.35" ft="0.012" cb="0.191" spr="0.920"/>
+    <type name="glc_350e"        consumption="26.00" max_charging_rate="0.5" mass="2100" width="1.89" height="1.64" length="4.66" cw="0.29" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="xc90_recharge"   consumption="29.00" max_charging_rate="0.5" mass="2400" width="1.92" height="1.78" length="4.95" cw="0.32" ft="0.012" cb="0.191" spr="0.925"/>
+    <type name="xc60_recharge"   consumption="27.00" max_charging_rate="0.5" mass="2150" width="1.90" height="1.66" length="4.69" cw="0.30" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="rav4_prime"      consumption="23.00" max_charging_rate="0.5" mass="1990" width="1.86" height="1.69" length="4.60" cw="0.31" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="prius_prime"     consumption="18.00" max_charging_rate="0.5" mass="1530" width="1.76" height="1.47" length="4.64" cw="0.24" ft="0.009" cb="0.191" spr="0.940"/>
+    <type name="pacifica_phev"   consumption="31.00" max_charging_rate="0.5" mass="2372" width="2.02" height="1.78" length="5.18" cw="0.35" ft="0.012" cb="0.191" spr="0.920"/>
+    <type name="escape_phev"     consumption="23.00" max_charging_rate="0.5" mass="1870" width="1.88" height="1.68" length="4.59" cw="0.33" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="tucson_phev"     consumption="24.00" max_charging_rate="0.5" mass="1960" width="1.87" height="1.65" length="4.50" cw="0.31" ft="0.011" cb="0.191" spr="0.930"/>
+    <type name="sportage_phev"   consumption="25.00" max_charging_rate="0.5" mass="1960" width="1.87" height="1.65" length="4.52" cw="0.31" ft="0.011" cb="0.191" spr="0.930"/>
 </vehicletypes>

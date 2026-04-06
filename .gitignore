@@ -41,5 +41,9 @@ Input Files/plans_maryland_ev.xml/
 # Zip archives
 UrbanEV-v2-master.zip
 
+# JVM crash logs
+hs_err_pid*.log
+*.class
+
 # Claude local settings
 .claude/
