@@ -1,5 +1,6 @@
 package se.urbanEV.planning;
 
+import se.urbanEV.fleet.ElectricFleetSpecification;
 import se.urbanEV.infrastructure.ChargingInfrastructureSpecification;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.core.api.experimental.events.EventsManager;
@@ -49,14 +50,17 @@ public class InsertEnRouteCharging implements Provider<PlanStrategy> {
     private final EventsManager eventsManager;
     private final Scenario scenario;
     private final ChargingInfrastructureSpecification chargingInfrastructure;
+    private final ElectricFleetSpecification electricFleetSpec;
 
     @Inject
     public InsertEnRouteCharging(EventsManager eventsManager,
                                  Scenario scenario,
-                                 ChargingInfrastructureSpecification chargingInfrastructure) {
+                                 ChargingInfrastructureSpecification chargingInfrastructure,
+                                 ElectricFleetSpecification electricFleetSpec) {
         this.eventsManager          = eventsManager;
         this.scenario               = scenario;
         this.chargingInfrastructure = chargingInfrastructure;
+        this.electricFleetSpec      = electricFleetSpec;
     }
 
     @Override
@@ -66,7 +70,7 @@ public class InsertEnRouteCharging implements Provider<PlanStrategy> {
                 new PlanStrategyImpl.Builder(new ExpBetaPlanSelector<>(logitScaleFactor));
 
         InsertEnRouteChargingModule module =
-                new InsertEnRouteChargingModule(scenario, chargingInfrastructure);
+                new InsertEnRouteChargingModule(scenario, chargingInfrastructure, electricFleetSpec);
 
         builder.addStrategyModule(module);
 

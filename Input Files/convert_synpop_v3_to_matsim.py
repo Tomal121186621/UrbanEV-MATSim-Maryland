@@ -374,6 +374,7 @@ def main():
         "trips_snapped_origin": 0, "trips_snapped_dest": 0,
         "trips_snapped_both": 0, "trips_skipped": 0, "warnings": 0,
         "bev_persons": 0, "phev_persons": 0,
+        "skipped_no_car": 0, "skipped_no_ev_slot": 0,
     }
     income_dist = defaultdict(int)
     dwelling_dist = defaultdict(int)
@@ -471,57 +472,20 @@ def main():
 
             return trip, "snapped_both" if fixed else "skip"
 
-    def flush_person():
-        nonlocal current_pid, current_trips, current_person_info
+    def flush_person_final(pinfo, valid_trips, has_external,
+                           ev_make, ev_model, ev_type, rank):
+        """Write one EV agent with assigned EV specs."""
 
-        if current_person_info is None or not current_person_info.get("is_ev"):
-            return
+        pid = pinfo["person_id"]
+        home_x = pinfo["home_x"]
+        home_y = pinfo["home_y"]
 
-        current_trips.sort(key=lambda t: t["tripno"])
-
-        valid_trips = []
-        has_external = False
-        for t in current_trips:
-            t, trip_class = snap_to_network(t)
-            if trip_class == "skip":
-                stats["trips_skipped"] += 1
-                continue
-            if t["o_x"] == 0 or t["o_y"] == 0 or t["d_x"] == 0 or t["d_y"] == 0:
-                stats["trips_skipped"] += 1
-                continue
-            valid_trips.append(t)
-            if trip_class == "I-I":
-                stats["trips_ii"] += 1
-            elif trip_class == "snapped_dest":
-                stats["trips_snapped_dest"] += 1
-                has_external = True
-            elif trip_class == "snapped_origin":
-                stats["trips_snapped_origin"] += 1
-                has_external = True
-            elif trip_class == "snapped_both":
-                stats["trips_snapped_both"] += 1
-                has_external = True
-
-        if len(valid_trips) < 1:
-            stats["warnings"] += 1
-            return
-
-        pid = current_person_info["person_id"]
-        home_x = current_person_info["home_x"]
-        home_y = current_person_info["home_y"]
-        if home_x == 0 or home_y == 0:
-            stats["warnings"] += 1
-            return
-
-        income_code = current_person_info["hh_income"]
-        age = current_person_info["age"]
-        home_type = current_person_info["home_type"]
-        ownership = current_person_info["home_ownership"]
-        employment = current_person_info["employment_status"]
-        j1_ev_charging = current_person_info["j1_ev_charging"]
-        ev_model = current_person_info["ev_model"]
-        ev_make = current_person_info["ev_make"]
-        ev_type = current_person_info["ev_type"]
+        income_code = pinfo["hh_income"]
+        age = pinfo["age"]
+        home_type = pinfo["home_type"]
+        ownership = pinfo["home_ownership"]
+        employment = pinfo["employment_status"]
+        j1_ev_charging = pinfo["j1_ev_charging"]
 
         income_midpoint = INCOME_MIDPOINTS.get(income_code, 62_500)
         dwelling_str = DWELLING_MAP.get(home_type, "unknown")
@@ -565,10 +529,12 @@ def main():
         battery = BATTERY_CAPACITY.get(ev_model,
                     DEFAULT_BATTERY_PHEV if is_phev else DEFAULT_BATTERY)
 
-        # Use ev1_battery_kwh from CSV if available and reasonable
-        csv_battery = current_person_info.get("ev1_battery_kwh", 0)
-        if csv_battery > 5:
-            battery = round(csv_battery)
+        # Primary driver (rank 0): use ev1_battery_kwh from CSV if available
+        # Secondary drivers (rank 1+): use lookup table only (generic specs)
+        if rank == 0:
+            csv_battery = pinfo.get("ev1_battery_kwh", 0)
+            if csv_battery > 5:
+                battery = round(csv_battery)
 
         initial_soc = round(battery * random.uniform(0.40, 0.80), 2)
         vtkey = vehicle_type_key(ev_model)
@@ -606,7 +572,7 @@ def main():
 
         summary_rows.append({
             "person_id": pid,
-            "household_id": current_person_info["household_id"],
+            "household_id": pinfo["household_id"],
             "ev_make": ev_make, "ev_model": ev_model, "ev_type": ev_type,
             "battery_kWh": battery,
             "income_bracket": income_code, "income_midpoint": income_midpoint,
@@ -629,19 +595,44 @@ def main():
             print(f"  ... {stats['ev_persons']:,} EV persons processed "
                   f"({stats['total_rows']:,} rows read, {elapsed:.0f}s)")
 
-    # ── Main streaming loop ──
+    # ── Household-level EV assignment ──────────────────────────────────────
+    # Phase 1: Stream CSV, collect all EV persons grouped by household.
+    # Phase 2: For each household, assign EVs to the top ev_count drivers
+    #          (ranked by number of car trips). Primary driver gets ev1 specs,
+    #          secondary drivers get generic BEV/PHEV specs.
+
+    print("\nPhase 1: Collecting EV persons by household...")
+    # hh_id -> list of (person_info, trips)
+    household_persons = defaultdict(list)
+    household_ev_count = {}  # hh_id -> ev_count
+
+    current_pid = None
+    current_trips = []
+    current_person_info = None
+
+    def collect_person():
+        """Collect person into household bucket (don't write yet)."""
+        nonlocal current_pid, current_trips, current_person_info
+        if current_person_info is None or not current_person_info.get("is_ev"):
+            return
+        hh_id = current_person_info["household_id"]
+        household_persons[hh_id].append((current_person_info, list(current_trips)))
+        if hh_id not in household_ev_count:
+            household_ev_count[hh_id] = safe_int(current_person_info.get("ev_count", 1))
+            if household_ev_count[hh_id] < 1:
+                household_ev_count[hh_id] = 1
+
     with open(INPUT_CSV, "r", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
             stats["total_rows"] += 1
-            # Construct person_id from household_id + person_slot
             hh_id = row.get("household_id", "")
             p_slot = row.get("person_slot", "")
             pid = f"{hh_id}_{p_slot}"
 
             if pid != current_pid:
                 if current_pid is not None:
-                    flush_person()
+                    collect_person()
                 current_pid = pid
                 current_trips = []
                 is_ev = row.get("has_ev", "0") == "1"
@@ -667,6 +658,7 @@ def main():
                     "ev_make": ev_make,
                     "ev_model": ev_model,
                     "ev_type": ev_type,
+                    "ev_count": safe_int(row.get("ev_count", 1)),
                     "ev1_battery_kwh": safe_float(row.get("ev1_battery_kwh")),
                     "home_state_county_fips": safe_int(row.get("home_state_county_fips")),
                 }
@@ -691,7 +683,82 @@ def main():
             current_trips.append(trip)
 
         if current_pid is not None:
-            flush_person()
+            collect_person()
+
+    elapsed_p1 = time.time() - t0
+    total_hh = len(household_persons)
+    total_ev_persons_collected = sum(len(v) for v in household_persons.values())
+    print(f"  Phase 1 complete: {total_ev_persons_collected:,} EV persons in "
+          f"{total_hh:,} households ({elapsed_p1:.0f}s)")
+
+    # ── Phase 2: Assign EVs per household and write ──
+    print("\nPhase 2: Assigning EVs to top drivers per household...")
+
+    for hh_id, persons_list in household_persons.items():
+        ev_count = household_ev_count.get(hh_id, 1)
+
+        # Count car trips per person and filter to drivers only
+        person_car_trips = []
+        for pinfo, trips in persons_list:
+            # Resolve external trips
+            valid_trips = []
+            has_external = False
+            for t in sorted(trips, key=lambda x: x["tripno"]):
+                t, trip_class = snap_to_network(t)
+                if trip_class == "skip":
+                    stats["trips_skipped"] += 1
+                    continue
+                if t["o_x"] == 0 or t["o_y"] == 0 or t["d_x"] == 0 or t["d_y"] == 0:
+                    stats["trips_skipped"] += 1
+                    continue
+                valid_trips.append(t)
+                if trip_class == "I-I":
+                    stats["trips_ii"] += 1
+                elif trip_class in ("snapped_dest", "snapped_origin", "snapped_both"):
+                    stats[f"trips_{trip_class}"] += 1
+                    has_external = True
+
+            if not valid_trips:
+                stats["warnings"] += 1
+                continue
+
+            num_car = sum(1 for t in valid_trips if t["travel_mode"] == 4)
+            if num_car == 0:
+                stats["skipped_no_car"] += 1
+                continue
+
+            if pinfo["home_x"] == 0 or pinfo["home_y"] == 0:
+                stats["warnings"] += 1
+                continue
+
+            person_car_trips.append((pinfo, valid_trips, num_car, has_external))
+
+        if not person_car_trips:
+            continue
+
+        # Sort by car trips descending — top drivers get EVs
+        person_car_trips.sort(key=lambda x: -x[2])
+
+        # Assign EVs: top ev_count persons get vehicles
+        for rank, (pinfo, valid_trips, num_car, has_external) in enumerate(person_car_trips):
+            if rank >= ev_count:
+                stats["skipped_no_ev_slot"] += 1
+                continue
+
+            # Primary driver (rank 0) gets ev1 specs from CSV
+            # Secondary drivers (rank 1+) get generic type based on ev1_type
+            if rank == 0:
+                ev_model = pinfo["ev_model"]
+                ev_make = pinfo["ev_make"]
+                ev_type = pinfo["ev_type"]
+            else:
+                # Secondary driver: generic BEV or PHEV
+                ev_type = pinfo["ev_type"] if pinfo["ev_type"] in ("BEV", "PHEV") else "BEV"
+                ev_model = ev_type  # "BEV" or "PHEV"
+                ev_make = "Other"
+
+            flush_person_final(pinfo, valid_trips, has_external,
+                               ev_make, ev_model, ev_type, rank)
 
     plans_f.write('</population>\n')
     plans_f.close()
@@ -775,6 +842,8 @@ def main():
     print(f"    BEV persons:           {stats['bev_persons']:,}")
     print(f"    PHEV persons:          {stats['phev_persons']:,}")
     print(f"  EV trips written:        {stats['ev_trips_written']:,}")
+    print(f"  Skipped (no car trips):  {stats['skipped_no_car']:,}")
+    print(f"  Skipped (no EV slot):    {stats['skipped_no_ev_slot']:,}")
 
     print(f"\n  Trip classification:")
     print(f"    Internal (I-I):        {stats['trips_ii']:,}")

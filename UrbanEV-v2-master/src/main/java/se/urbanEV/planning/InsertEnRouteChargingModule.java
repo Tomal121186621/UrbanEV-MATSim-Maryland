@@ -1,6 +1,9 @@
 package se.urbanEV.planning;
 
 import se.urbanEV.config.UrbanEVConfigGroup;
+import se.urbanEV.fleet.ElectricFleetSpecification;
+import se.urbanEV.fleet.ElectricVehicleSpecification;
+import se.urbanEV.fleet.ElectricVehicleType;
 import se.urbanEV.infrastructure.ChargerSpecification;
 import se.urbanEV.infrastructure.ChargingInfrastructureSpecification;
 import se.urbanEV.scoring.ChargingBehaviourScoringEvent;
@@ -32,15 +35,21 @@ import java.util.*;
  *       the problem occurred.</li>
  *   <li>Enumerate charger candidates positioned along that leg's route, within
  *       {@code enRouteSearchRadius} metres of each sampled link.</li>
- *   <li>Select one candidate according to risk attitude (early/middle/late along route).</li>
+ *   <li>Select one candidate according to risk attitude (early/middle/late along route).
+ *       <b>DCFC chargers are strongly preferred</b>; L2 is used only as fallback.</li>
  *   <li>Split the leg at the selected charger: insert a new {@code "other charging"} activity
- *       and two re-routeable legs in place of the original leg.</li>
+ *       with <b>dynamic duration</b> based on remaining trip energy need and charger power.</li>
  *   <li>At most one insertion is made per {@code handlePlan()} call.</li>
  * </ol>
  *
- * <h3>Charger duration heuristic</h3>
- * DCFC stations ({@code plugPower > dcfcPowerThreshold kW}): 30 min maximum duration.<br>
- * L2 stations: 60 min maximum duration.
+ * <h3>Dynamic charge duration</h3>
+ * Duration is calculated as the time needed to charge enough energy for the remaining
+ * trip distance (from charger to destination), plus a safety buffer that varies by
+ * the agent's risk attitude. Capped at 45 min for DCFC and 90 min for L2.
+ *
+ * <h3>Charger preference</h3>
+ * DCFC chargers are preferred for en-route stops. L2 chargers are only selected
+ * when no DCFC candidate exists along the route.
  *
  * <h3>Duplicate-stop prevention</h3>
  * If the plan already contains a {@code " charging"} activity within
@@ -64,28 +73,40 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
     /** Radius within which an existing charging activity suppresses a new candidate (dedup). */
     private static final double DEDUP_RADIUS_M = 5_000.0;
 
-    /** Maximum duration (seconds) for a DCFC en-route stop. */
-    private static final double DCFC_STOP_DURATION_SEC = 1_800.0; // 30 min
+    /** Hard cap on DCFC en-route stop duration (seconds). */
+    private static final double DCFC_MAX_DURATION_SEC = 2_700.0; // 45 min
 
-    /** Maximum duration (seconds) for an L2 en-route stop. */
-    private static final double L2_STOP_DURATION_SEC = 3_600.0; // 60 min
+    /** Hard cap on L2 en-route stop duration (seconds). */
+    private static final double L2_MAX_DURATION_SEC = 5_400.0; // 90 min
+
+    /** Minimum en-route charge duration (seconds) — prevents trivially short stops. */
+    private static final double MIN_CHARGE_DURATION_SEC = 300.0; // 5 min
+
+    /** Default energy consumption rate (kWh/m) when vehicle type lookup fails. */
+    private static final double DEFAULT_CONSUMPTION_KWH_PER_M = 0.000199;
 
     private final Random random = org.matsim.core.gbl.MatsimRandom.getLocalInstance();
     private final Network network;
     private final ChargingInfrastructureSpecification chargingInfrastructure;
+    private final ElectricFleetSpecification electricFleetSpec;
     private final PopulationFactory popFactory;
     private final double enRouteSearchRadius;
     private final double dcfcPowerThresholdKw;
+    private final double enRouteSafetyBuffer;
 
-    InsertEnRouteChargingModule(Scenario scenario, ChargingInfrastructureSpecification chargingInfrastructure) {
+    InsertEnRouteChargingModule(Scenario scenario,
+                                ChargingInfrastructureSpecification chargingInfrastructure,
+                                ElectricFleetSpecification electricFleetSpec) {
         this.network = scenario.getNetwork();
         this.chargingInfrastructure = chargingInfrastructure;
+        this.electricFleetSpec = electricFleetSpec;
         this.popFactory = scenario.getPopulation().getFactory();
 
         UrbanEVConfigGroup evCfg = (UrbanEVConfigGroup)
                 scenario.getConfig().getModules().get(UrbanEVConfigGroup.GROUP_NAME);
         this.enRouteSearchRadius  = (evCfg != null) ? evCfg.getEnRouteSearchRadius()   : 2_000.0;
         this.dcfcPowerThresholdKw = (evCfg != null) ? evCfg.getDcfcPowerThreshold()    : 50.0;
+        this.enRouteSafetyBuffer  = (evCfg != null) ? evCfg.getEnRouteSafetyBuffer()   : 0.10;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -160,14 +181,15 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
             // Step 5: select charger according to risk attitude
             ChargerCandidate selected = selectCandidate(candidates, riskAttitude);
 
-            // Step 6: split the leg and insert the charging stop
-            insertChargingStop(plan, legIdx, targetLeg, selected);
+            // Step 6: split the leg and insert the charging stop with dynamic duration
+            insertChargingStop(plan, legIdx, targetLeg, selected, riskAttitude, linkIds);
 
             log.info(String.format(
                     "InsertEnRoute: inserted '%s charging' for person %s at charger %s "
-                    + "(riskAttitude=%s, power=%.1f kW, candidates=%d)",
+                    + "(riskAttitude=%s, power=%.1f kW, %s, candidates=%d)",
                     selected.charger.getChargerType(), personId, selected.charger.getId(),
-                    riskAttitude, selected.charger.getPlugPower() / 1000.0, candidates.size()));
+                    riskAttitude, selected.charger.getPlugPower() / 1000.0,
+                    isDcfc(selected.charger) ? "DCFC" : "L2", candidates.size()));
 
             return; // one insertion per handlePlan() call
         }
@@ -269,12 +291,11 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
 
     /**
      * Returns a list of {@link ChargerCandidate}s sorted by their position index
-     * along the route (earliest first).
+     * along the route (earliest first). <b>DCFC chargers are preferred</b>;
+     * L2 candidates are only returned when no DCFC candidates exist.
      *
-     * <p>Only links at indices 0 … {@code linkIds.size()-2} (i.e. NOT the last link
-     * before the destination) are considered, to avoid inserting a stop immediately
-     * at the destination.  Every {@value #LINK_STRIDE}th link is sampled to keep
-     * the search tractable on long routes.
+     * <p>Only links at indices 0 … {@code linkIds.size()-2} are considered.
+     * Every {@value #LINK_STRIDE}th link is sampled.
      *
      * <p>A candidate is suppressed if the plan already contains a {@code " charging"}
      * activity within {@value #DEDUP_RADIUS_M} m of the charger's coordinate.
@@ -282,12 +303,11 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
     private List<ChargerCandidate> findCandidatesAlongRoute(
             List<Id<Link>> linkIds, Plan plan) {
 
-        // Pre-collect existing charging activity coords for dedup
         List<Coord> existingChargingCoords = collectExistingChargingCoords(plan);
 
-        List<ChargerCandidate> candidates = new ArrayList<>();
+        List<ChargerCandidate> dcfcCandidates = new ArrayList<>();
+        List<ChargerCandidate> l2Candidates = new ArrayList<>();
 
-        // Search only the first ~90% of the route to leave travel buffer
         int searchLimit = Math.max(MIN_ROUTE_LINKS, (int) (linkIds.size() * 0.90));
 
         for (int li = 0; li < searchLimit; li += LINK_STRIDE) {
@@ -296,22 +316,37 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
             Coord linkCoord = link.getCoord();
 
             for (ChargerSpecification charger : chargingInfrastructure.getChargerSpecifications().values()) {
-                // Private (allowed-vehicles) chargers are excluded from en-route insertion
                 if (!charger.getAllowedVehicles().isEmpty()) continue;
 
                 double dist = DistanceUtils.calculateDistance(linkCoord, charger.getCoord());
                 if (dist > enRouteSearchRadius) continue;
 
-                // Dedup: skip if existing charging stop is already near this charger
                 if (tooCloseToExistingStop(charger.getCoord(), existingChargingCoords)) continue;
 
-                candidates.add(new ChargerCandidate(charger, li, linkCoord));
+                ChargerCandidate candidate = new ChargerCandidate(charger, li, linkCoord);
+                if (isDcfc(charger)) {
+                    dcfcCandidates.add(candidate);
+                } else {
+                    l2Candidates.add(candidate);
+                }
             }
         }
 
-        // Sort by route position (ascending) to enable risk-attitude slicing
-        candidates.sort(Comparator.comparingInt(c -> c.routeLinkIdx));
-        return candidates;
+        // Prefer DCFC; fall back to L2 only when no DCFC found
+        List<ChargerCandidate> chosen = dcfcCandidates.isEmpty() ? l2Candidates : dcfcCandidates;
+
+        if (!dcfcCandidates.isEmpty() && !l2Candidates.isEmpty()) {
+            log.info(String.format(
+                    "InsertEnRoute: found %d DCFC + %d L2 candidates — selecting from DCFC",
+                    dcfcCandidates.size(), l2Candidates.size()));
+        } else if (dcfcCandidates.isEmpty() && !l2Candidates.isEmpty()) {
+            log.info(String.format(
+                    "InsertEnRoute: no DCFC found, falling back to %d L2 candidates",
+                    l2Candidates.size()));
+        }
+
+        chosen.sort(Comparator.comparingInt(c -> c.routeLinkIdx));
+        return chosen;
     }
 
     private List<Coord> collectExistingChargingCoords(Plan plan) {
@@ -387,42 +422,103 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
     /**
      * Replaces the single car leg at {@code legIdx} with:
      * <pre>
-     *   [Leg car, no route] → [Activity "other charging", maxDuration] → [Leg car, no route]
+     *   [Leg car, no route] → [Activity "other charging", dynamicDuration] → [Leg car, no route]
      * </pre>
      *
+     * <p><b>Dynamic duration calculation:</b>
+     * <ol>
+     *   <li>Estimate remaining distance from charger to destination (route links after charger).</li>
+     *   <li>Calculate energy needed: {@code remainingDist × consumptionRate}.</li>
+     *   <li>Add safety buffer based on risk attitude (averse=30%, moderate=20%, neutral=10%).</li>
+     *   <li>Calculate charge time: {@code energyNeeded / chargerPower}.</li>
+     *   <li>Clamp to [5 min, 45 min DCFC / 90 min L2].</li>
+     * </ol>
+     *
      * Both new legs have their routes cleared so MATSim's router will re-route them
-     * during the next QSim run.  The departure time of the first new leg is copied
-     * from the original leg (if set).
+     * during the next QSim run.
      */
     private void insertChargingStop(Plan plan, int legIdx, Leg originalLeg,
-                                    ChargerCandidate selected) {
+                                    ChargerCandidate selected, String riskAttitude,
+                                    List<Id<Link>> routeLinkIds) {
         List<PlanElement> elements = plan.getPlanElements();
 
-        // Determine stop duration based on charger tier
-        double stopDurationSec = isDcfc(selected.charger)
-                ? DCFC_STOP_DURATION_SEC
-                : L2_STOP_DURATION_SEC;
+        // ── Calculate dynamic charge duration ────────────────────────────────
 
-        // Build the new charging activity at the charger's coordinate
+        // 1. Remaining distance: sum link lengths from charger position to end of route
+        double remainingDistM = 0.0;
+        for (int i = selected.routeLinkIdx + 1; i < routeLinkIds.size(); i++) {
+            Link link = network.getLinks().get(routeLinkIds.get(i));
+            if (link != null) remainingDistM += link.getLength();
+        }
+
+        // 2. Energy needed for remaining distance
+        //    Look up consumption from the EV fleet specification (authentic per-vehicle-type values
+        //    from urbanev_vehicletypes.xml, originally derived from EPA fueleconomy.gov ratings).
+        double consumptionKwhPerM = DEFAULT_CONSUMPTION_KWH_PER_M;
+        Person person = plan.getPerson();
+        if (person != null && electricFleetSpec != null) {
+            Id<se.urbanEV.fleet.ElectricVehicle> evId =
+                    Id.create(person.getId().toString(), se.urbanEV.fleet.ElectricVehicle.class);
+            ElectricVehicleSpecification evSpec =
+                    electricFleetSpec.getVehicleSpecifications().get(evId);
+            if (evSpec != null && evSpec.getVehicleType() != null) {
+                // getConsumption() returns kWh/100km from urbanev_vehicletypes.xml
+                double kwhPer100km = evSpec.getVehicleType().getConsumption();
+                if (kwhPer100km > 0) {
+                    consumptionKwhPerM = kwhPer100km / 100_000.0; // kWh/100km → kWh/m
+                }
+            }
+        }
+        double energyNeededKwh = remainingDistM * consumptionKwhPerM;
+
+        // 3. Add safety buffer based on risk attitude
+        double bufferFactor;
+        switch (riskAttitude) {
+            case "averse":  bufferFactor = 0.30 + enRouteSafetyBuffer; break;
+            case "seeking": bufferFactor = 0.05 + enRouteSafetyBuffer; break;
+            default:        bufferFactor = 0.15 + enRouteSafetyBuffer; break; // moderate
+        }
+        double energyWithBufferKwh = energyNeededKwh * (1.0 + bufferFactor);
+
+        // 4. Calculate charge time from charger power
+        double chargerPowerKw = selected.charger.getPlugPower() / 1000.0; // W → kW
+        double chargeDurationSec;
+        if (chargerPowerKw > 0) {
+            chargeDurationSec = (energyWithBufferKwh / chargerPowerKw) * 3600.0;
+        } else {
+            chargeDurationSec = isDcfc(selected.charger) ? DCFC_MAX_DURATION_SEC : L2_MAX_DURATION_SEC;
+        }
+
+        // 5. Clamp to [MIN, MAX] based on charger tier
+        double maxDuration = isDcfc(selected.charger) ? DCFC_MAX_DURATION_SEC : L2_MAX_DURATION_SEC;
+        chargeDurationSec = Math.max(MIN_CHARGE_DURATION_SEC, Math.min(chargeDurationSec, maxDuration));
+
+        log.info(String.format(
+                "InsertEnRoute: dynamic duration=%.0fs (remainDist=%.0fm, energyNeeded=%.1fkWh, "
+                + "buffer=%.0f%%, chargerPower=%.0fkW, %s)",
+                chargeDurationSec, remainingDistM, energyNeededKwh,
+                bufferFactor * 100, chargerPowerKw,
+                isDcfc(selected.charger) ? "DCFC" : "L2"));
+
+        // ── Build plan elements ──────────────────────────────────────────────
+
         Activity chargingAct = popFactory.createActivityFromCoord(
                 "other" + CHARGING_IDENTIFIER, selected.charger.getCoord());
-        chargingAct.setMaximumDuration(stopDurationSec);
+        chargingAct.setMaximumDuration(chargeDurationSec);
 
-        // Build two new car legs without routes — router fills them in next iteration
         Leg legToCharger   = popFactory.createLeg("car");
         Leg legFromCharger = popFactory.createLeg("car");
 
-        // Preserve departure time on the first leg so timing is consistent
         if (originalLeg.getDepartureTime().isDefined()) {
             legToCharger.setDepartureTime(originalLeg.getDepartureTime().seconds());
         }
 
-        // Splice: remove old leg, insert three elements in its place
         elements.remove(legIdx);
         elements.add(legIdx,     legToCharger);
         elements.add(legIdx + 1, chargingAct);
         elements.add(legIdx + 2, legFromCharger);
     }
+
 
     /** Returns true if the charger qualifies as DCFC based on its plug power. */
     private boolean isDcfc(ChargerSpecification charger) {
