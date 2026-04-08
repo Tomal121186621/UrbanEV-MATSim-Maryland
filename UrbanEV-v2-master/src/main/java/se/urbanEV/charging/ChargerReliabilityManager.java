@@ -10,6 +10,7 @@ import se.urbanEV.infrastructure.ChargerSpecification;
 import se.urbanEV.infrastructure.ChargingInfrastructureSpecification;
 import se.urbanEV.infrastructure.ImmutableChargerSpecification;
 
+import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -45,6 +46,7 @@ public class ChargerReliabilityManager implements IterationStartsListener {
     private final Map<Id<Charger>, Integer> originalPlugCounts = new HashMap<>();
     private boolean initialized = false;
 
+    @Inject
     public ChargerReliabilityManager(ChargingInfrastructureSpecification infraSpec,
                                       UrbanEVConfigGroup config) {
         this.infraSpec = infraSpec;

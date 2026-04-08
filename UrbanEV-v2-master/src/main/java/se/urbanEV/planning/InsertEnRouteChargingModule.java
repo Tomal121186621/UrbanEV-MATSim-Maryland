@@ -203,7 +203,9 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
         Object attr = person.getAttributes().getAttribute("riskAttitude");
         if (attr != null) {
             String val = attr.toString().toLowerCase(Locale.ROOT).trim();
-            if (val.equals("averse") || val.equals("seeking")) return val;
+            // Match both formats: "averse"/"risk_averse" and "seeking"/"risk_neutral"
+            if (val.contains("averse")) return "averse";
+            if (val.equals("seeking") || val.contains("neutral")) return "seeking";
         }
         return "moderate";
     }

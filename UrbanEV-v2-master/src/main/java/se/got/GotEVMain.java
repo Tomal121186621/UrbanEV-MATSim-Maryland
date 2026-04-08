@@ -165,18 +165,29 @@ public class GotEVMain {
             }
         });
 
+        // SocProblemCollector lifecycle:
+        //   IterationStarts → replanning reads problems → BeforeMobsim clears → mobsim records new
+        // Problems from iteration N survive through iteration N+1's replanning.
         controler.addControlerListener(new IterationStartsListener() {
             @Override
             public void notifyIterationStarts(IterationStartsEvent event) {
-                // Clear previous iteration's SoC problem records before each new mobsim.
-                SocProblemCollector.getInstance().reset(event.getIteration());
+                // Log problem count BEFORE replanning consumes them
                 if (event.getIteration() > 0) {
                     log.info(String.format(
-                            "SocProblemCollector: cleared records for iteration %d "
-                            + "(previous iteration had %d affected persons)",
+                            "SocProblemCollector: iteration %d replanning has %d affected persons from previous iteration",
                             event.getIteration(),
                             SocProblemCollector.getInstance().getProblemPersonCount()));
                 }
+                // reset() resets counters but does NOT clear problems — they're needed during replanning
+                SocProblemCollector.getInstance().reset(event.getIteration());
+            }
+        });
+
+        // Clear problems AFTER replanning completes, before new mobsim starts
+        controler.addControlerListener(new org.matsim.core.controler.listener.BeforeMobsimListener() {
+            @Override
+            public void notifyBeforeMobsim(org.matsim.core.controler.events.BeforeMobsimEvent event) {
+                SocProblemCollector.getInstance().clearProblemsAfterReplanning();
             }
         });
 

@@ -73,10 +73,19 @@ public class SocProblemCollector implements ChargingBehaviourScoringEventHandler
 
     // ── ChargingBehaviourScoringEventHandler ──────────────────────────────────
 
+    private long eventsReceived = 0;
+    private long eventsLowSoc = 0;
+    private long eventsCostOnly = 0;
+
     @Override
     public void handleEvent(ChargingBehaviourScoringEvent event) {
+        eventsReceived++;
+
         // Cost-only events carry monetary data, not SoC state — skip them.
-        if (event.isCostOnly()) return;
+        if (event.isCostOnly()) {
+            eventsCostOnly++;
+            return;
+        }
 
         Double socObj = event.getSoc();
         if (socObj == null) return;
@@ -87,6 +96,7 @@ public class SocProblemCollector implements ChargingBehaviourScoringEventHandler
 
         // Record a problem if the agent's SoC is at or below their threshold
         if (soc <= 0.0 || soc < threshold) {
+            eventsLowSoc++;
             SocProblemRecord record = new SocProblemRecord(
                     pid,
                     event.getTime(),
@@ -99,8 +109,37 @@ public class SocProblemCollector implements ChargingBehaviourScoringEventHandler
         }
     }
 
+    /**
+     * Reset is called by EventsManager at the start of each iteration's mobsim.
+     * We do NOT clear problems here — they must survive through replanning,
+     * which happens BEFORE the mobsim. Instead, we swap: move current problems
+     * to a "previous iteration" buffer, and clear the active map.
+     *
+     * <p>The InsertEnRouteChargingModule reads from the active problems map
+     * during replanning (which fires before this reset). So problems from
+     * iteration N are available during iteration N+1's replanning.
+     */
     @Override
     public void reset(int iteration) {
+        // Log diagnostic stats
+        if (eventsReceived > 0) {
+            System.out.println(String.format(
+                "SocProblemCollector DIAGNOSTICS: iter=%d received=%d costOnly=%d lowSoc=%d problems=%d",
+                iteration, eventsReceived, eventsCostOnly, eventsLowSoc, problems.size()));
+        }
+        // DON'T clear problems here — they're needed during replanning.
+        // The manual reset (called from GotEVMain IterationStartsListener)
+        // handles the clearing AFTER replanning is done.
+        eventsReceived = 0;
+        eventsLowSoc = 0;
+        eventsCostOnly = 0;
+    }
+
+    /**
+     * Called explicitly from GotEVMain's IterationStartsListener AFTER
+     * replanning has completed, to clear stale records before the new mobsim.
+     */
+    public void clearProblemsAfterReplanning() {
         problems.clear();
     }
 

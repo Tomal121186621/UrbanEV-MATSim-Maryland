@@ -396,6 +396,26 @@
     <param name="enRouteSafetyBuffer" value="0.10"/>
     <param name="socProblemThreshold" value="0.05"/>
 
+    <!-- ~~~ PHEV gas fallback (Axsen et al. 2020) ~~~~~~~~~~~~~~~~~~~~~~~~ -->
+    <param name="phevMinSocFraction" value="0.15"/>
+    <param name="phevGasCostPerLiter" value="0.95"/>
+    <param name="phevCSEfficiency" value="0.30"/>
+
+    <!-- ~~~ Multi-day SoC persistence (Baum et al. 2022) ~~~~~~~~~~~~~~~~~ -->
+    <param name="enableSocPersistence" value="true"/>
+
+    <!-- ~~~ Workplace charger competition (Wood et al. 2018, NREL) ~~~~~~~ -->
+    <param name="workplaceChargerRatio" value="5"/>
+    <param name="workplaceClusterRadius" value="500.0"/>
+
+    <!-- ~~~ Charging cost awareness (Ge et al. 2023) ~~~~~~~~~~~~~~~~~~~~~ -->
+    <param name="chargingCostSensitivity" value="3.0"/>
+
+    <!-- ~~~ Charger reliability (Rempel et al. 2022, NREL) ~~~~~~~~~~~~~~~ -->
+    <param name="enableChargerReliability" value="true"/>
+    <param name="dcfcChargerUptime" value="0.80"/>
+    <param name="l2ChargerUptime" value="0.92"/>
+
 </module>
 
 <!-- ======================================================================= -->
