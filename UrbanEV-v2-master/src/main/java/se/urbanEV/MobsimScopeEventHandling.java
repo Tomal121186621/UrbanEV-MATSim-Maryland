@@ -29,6 +29,7 @@ email	:	lennart.adenaw@tum.de
 
 package se.urbanEV;
 
+import org.apache.log4j.Logger;
 import se.urbanEV.config.UrbanEVConfigGroup;
 import se.urbanEV.fleet.*;
 import se.urbanEV.infrastructure.*;
@@ -71,6 +72,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Singleton
 public class MobsimScopeEventHandling implements StartupListener, AfterMobsimListener {
+	private static final Logger log = Logger.getLogger(MobsimScopeEventHandling.class);
 	private final Collection<MobsimScopeEventHandler> eventHandlers = new ConcurrentLinkedQueue<>();
 	private final EventsManager eventsManager;
 	private Random random = new Random();
@@ -108,6 +110,19 @@ public class MobsimScopeEventHandling implements StartupListener, AfterMobsimLis
 
 	@Inject
 	private UrbanEVConfigGroup urbanEVConfig;
+
+	// Workplace charger clustering (Wood et al. 2018, NREL)
+	private final java.util.Map<String, WorkplaceCluster> workplaceClusters = new java.util.HashMap<>();
+
+	private static class WorkplaceCluster {
+		final Coord coord;
+		final double power;
+		int workerCount = 0;
+		WorkplaceCluster(Coord coord, double power) {
+			this.coord = coord;
+			this.power = power;
+		}
+	}
 
 	public void addMobsimScopeHandler(MobsimScopeEventHandler handler) {
 		eventHandlers.add(handler);
@@ -160,81 +175,131 @@ public class MobsimScopeEventHandling implements StartupListener, AfterMobsimLis
 				}
 			}
 
-			// Add home and work chargers if necessary
+			// Add home charger (always private, per-agent)
 			if(homeChargerPower!=0.0) addPrivateCharger(person, "home", homeChargerPower);
-			if(workChargerPower!=0.0) addPrivateCharger(person, "work", workChargerPower);
+
+			// Collect work charger demand for shared workplace pools
+			// (Wood et al. 2018, NREL: shared chargers with 1:5 ratio)
+			if(workChargerPower!=0.0) {
+				Coord foundWorkCoord = null;
+				for (PlanElement pe : person.getSelectedPlan().getPlanElements()) {
+					if (pe instanceof Activity && ((Activity) pe).getType().startsWith("work")) {
+						foundWorkCoord = ((Activity) pe).getCoord();
+						break;
+					}
+				}
+				if (foundWorkCoord != null) {
+					final Coord wc = foundWorkCoord;
+					final double wcp = workChargerPower;
+					double clusterR = urbanEVConfig.getWorkplaceClusterRadius();
+					String clusterKey = (long)(wc.getX()/clusterR)*((long)clusterR)
+							+ "_" + (long)(wc.getY()/clusterR)*((long)clusterR);
+					workplaceClusters.computeIfAbsent(clusterKey, k -> new WorkplaceCluster(wc, wcp));
+					workplaceClusters.get(clusterKey).workerCount++;
+				}
+			}
 
         });
+
+		// Phase 2: Create shared workplace charger pools (Dong & Lin 2023)
+		int ratio = urbanEVConfig.getWorkplaceChargerRatio();
+		int wpChargers = 0;
+		for (java.util.Map.Entry<String, WorkplaceCluster> entry : workplaceClusters.entrySet()) {
+			WorkplaceCluster cluster = entry.getValue();
+			int plugCount = Math.max(1, cluster.workerCount / ratio);
+			String chargerId = "workplace_" + entry.getKey();
+			String chargerType = (cluster.power >= urbanEVConfig.getL2PowerThreshold()) ? "L2" : "L1";
+
+			ChargerSpecification spec = ImmutableChargerSpecification.newBuilder()
+					.id(Id.create(chargerId, Charger.class))
+					.coord(new Coord(cluster.coord.getX(), cluster.coord.getY()))
+					.chargerType(chargerType)
+					.plugPower(EvUnits.kW_to_W(cluster.power))
+					.plugCount(plugCount)
+					.allowedVehicles(new java.util.ArrayList<>())  // empty = open to all
+					.build();
+			chargingInfrastructureSpecification.addChargerSpecification(spec);
+			wpChargers++;
+		}
+		log.info("Workplace charging: created " + wpChargers + " shared charger pools "
+				+ "(ratio 1:" + ratio + ") from " + workplaceClusters.values().stream()
+				.mapToInt(c -> c.workerCount).sum() + " EV workers");
 
         // Write final chargers to file
 		ChargerWriter chargerWriter = new ChargerWriter(chargingInfrastructureSpecification.getChargerSpecifications().values().stream());
 		chargerWriter.write(config.controler().getOutputDirectory().concat("/chargers_complete.xml"));
 	}
 
+	/**
+	 * After each mobsim: carry forward per-vehicle SoC to the next iteration.
+	 *
+	 * <p>Replaces the original soc_histogram-based approach (which crashed when
+	 * the histogram file was not generated) with direct per-vehicle SoC carry-forward
+	 * as described in Baum et al. (2022). Each vehicle's end-of-day SoC becomes
+	 * its initial SoC for the next iteration, enabling multi-day learning dynamics.
+	 *
+	 * <p>This is critical for agents without home chargers: their SoC gradually
+	 * depletes across iterations, forcing them to seek public charging.
+	 */
 	@Override
 	public void notifyAfterMobsim(AfterMobsimEvent event) {
 		iterationNumber = iterationCounter.getIterationNumber();
+
+		// Capture end-of-day SoC before handlers are removed
+		for (MobsimScopeEventHandler handler : eventHandlers) {
+			if (handler instanceof se.urbanEV.discharging.DriveDischargingHandler) {
+				((se.urbanEV.discharging.DriveDischargingHandler) handler).captureEndOfDaySoc();
+			}
+		}
+
 		eventHandlers.forEach(eventsManager::removeHandler);
 		eventHandlers.clear();
 
-		// Todo: Check and revise this whole part
-		if (iterationNumber == lastIteration && endTime/(24*60*60)>1 && endTime%(24*60*60)==0 && lastIteration!=0) {
-			// get average soc distribution
-			int socDistibutionAtMidnight[] = new int[11];
-			AtomicInteger n = new AtomicInteger();
-			List<String[]> socs = CSVReaders.readTSV(Paths.get(controlerIO.getIterationFilename(iterationNumber, "soc_histogram_time_profiles.txt")).toString());
-			socs.forEach(row -> {
-				if (!row[0].equals("time")) {
-					double time = Time.parseTime(row[0]);
-					if (time > 0.3 * endTime && time % (24*60*60) == 0 && time < 0.8 * endTime) {
-						for (int i = 1; i < row.length; i++) {
-							socDistibutionAtMidnight[i-1] += Integer.parseInt(row[i]);
-						}
-						n.getAndIncrement();
-					}
-				}
-			});
+		if (!urbanEVConfig.isEnableSocPersistence()) return;
 
-			// find relative soc distribution at midnight
-			double relativeSocDistribution[] = new double[11];
-			double sum = 0;
-			for (int value : socDistibutionAtMidnight) {
-				sum += value;
-			}
-			for (int i = 0; i < relativeSocDistribution.length; i++) {
-				relativeSocDistribution[i] = socDistibutionAtMidnight[i] / sum;
-			}
+		// Read final SoC values captured by DriveDischargingHandler
+		java.util.Map<Id<ElectricVehicle>, Double> finalSocMap =
+				se.urbanEV.discharging.DriveDischargingHandler.getLastIterationFinalSoc();
 
-			// update start socs
-			electricFleetSpecification.getVehicleSpecifications().forEach((id, ev) -> {
+		if (finalSocMap.isEmpty()) {
+			log.info("SoC persistence: no final SoC data available (iteration " + iterationNumber + ")");
+			return;
+		}
 
-				double startSoc = 0.0;
-				while (startSoc < urbanEVConfig.getDefaultRangeAnxietyThreshold()) {
-					double r = random.nextDouble();
-					double distributionSum = 0;
-					for (int i = 0; i < relativeSocDistribution.length; i++) {
-						distributionSum += relativeSocDistribution[i];
-						if (r < distributionSum) {
-							startSoc = 0.1 * ((double) i - random.nextDouble());
-							break;
-						}
-					}
-				}
+		int updated = 0;
+		for (java.util.Map.Entry<Id<ElectricVehicle>, ElectricVehicleSpecification> entry
+				: electricFleetSpecification.getVehicleSpecifications().entrySet()) {
+			Id<ElectricVehicle> evId = entry.getKey();
+			ElectricVehicleSpecification oldSpec = entry.getValue();
+			Double finalSoc = finalSocMap.get(evId);
 
-				double initialSoc = startSoc * ev.getBatteryCapacity();
+			if (finalSoc != null) {
+				// Clamp SoC: ensure it's within [0, capacity]
+				double clampedSoc = Math.max(0, Math.min(finalSoc, oldSpec.getBatteryCapacity()));
 
-				ElectricVehicleSpecification electricVehicleSpecification = ImmutableElectricVehicleSpecification.newBuilder()
-						.id(id)
-						.vehicleType(ev.getVehicleType())
-						.chargerTypes(ev.getChargerTypes())
-						.initialSoc(initialSoc)
-						.batteryCapacity(ev.getBatteryCapacity())
+				ElectricVehicleSpecification newSpec = ImmutableElectricVehicleSpecification.newBuilder()
+						.id(evId)
+						.vehicleType(oldSpec.getVehicleType())
+						.chargerTypes(oldSpec.getChargerTypes())
+						.initialSoc(clampedSoc)
+						.batteryCapacity(oldSpec.getBatteryCapacity())
 						.build();
+				electricFleetSpecification.replaceVehicleSpecification(newSpec);
+				updated++;
+			}
+		}
 
-				electricFleetSpecification.replaceVehicleSpecification(electricVehicleSpecification);
-			});
-			ElectricFleetWriter electricFleetWriter = new ElectricFleetWriter(electricFleetSpecification.getVehicleSpecifications().values().stream());
-			electricFleetWriter.write(Paths.get(controlerIO.getOutputPath(),"output_evehicles.xml").toString());
+		log.info("SoC persistence: updated initial SoC for " + updated + " vehicles (iteration " + iterationNumber + ")");
+
+		// Write fleet state at final iteration for external analysis
+		if (iterationNumber == lastIteration) {
+			try {
+				ElectricFleetWriter writer = new ElectricFleetWriter(
+						electricFleetSpecification.getVehicleSpecifications().values().stream());
+				writer.write(Paths.get(controlerIO.getOutputPath(), "output_evehicles.xml").toString());
+			} catch (Exception e) {
+				log.warn("Could not write final EV fleet state: " + e.getMessage());
+			}
 		}
 	}
 

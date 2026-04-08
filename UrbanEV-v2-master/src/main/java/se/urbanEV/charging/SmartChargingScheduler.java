@@ -66,6 +66,9 @@ public class SmartChargingScheduler {
     public synchronized void processDueTasks(double now) {
         if (scheduled.isEmpty()) return;
 
+        // Collect retries separately to avoid ConcurrentModificationException
+        Map<Id<ElectricVehicle>, ScheduledCharge> retries = new HashMap<>();
+
         Iterator<Map.Entry<Id<ElectricVehicle>, ScheduledCharge>> it = scheduled.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<Id<ElectricVehicle>, ScheduledCharge> e = it.next();
@@ -87,7 +90,7 @@ public class SmartChargingScheduler {
                             + " charger=" + sc.chargerId + " now=" + (int) now
                             + " scheduled=" + (int) sc.startTime + " plugged=" + plugged + "/" + plugs
                             + " -> retry in 300s");
-                    scheduled.put(sc.evId, new ScheduledCharge(sc.evId, sc.chargerId, now + 300.0));
+                    retries.put(sc.evId, new ScheduledCharge(sc.evId, sc.chargerId, now + 300.0));
                     continue;
                 }
 
@@ -96,6 +99,9 @@ public class SmartChargingScheduler {
                 nPlugged++;
             }
         }
+
+        // Add retries after iteration completes
+        scheduled.putAll(retries);
     }
 
     public synchronized String consumeStatsLine(int iteration) {

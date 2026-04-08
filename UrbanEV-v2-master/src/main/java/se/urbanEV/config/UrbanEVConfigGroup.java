@@ -136,6 +136,41 @@ public final class UrbanEVConfigGroup extends ReflectiveConfigGroup {
     private static final String AWARENESS_FACTOR = "awarenessFactor";
     private static final String COINCIDENCE_FACTOR = "coincidenceFactor";
 
+    // ── PHEV gas fallback constants ──────────────────────────────────────────
+
+    private static final String PHEV_MIN_SOC_FRACTION = "phevMinSocFraction";
+    static final String PHEV_MIN_SOC_FRACTION_EXP = "[fraction 0-1] Minimum SoC before PHEV switches to gasoline. Default 0.15 (15%). Based on OEM battery protection thresholds.";
+    private static final String PHEV_GAS_COST_PER_LITER = "phevGasCostPerLiter";
+    static final String PHEV_GAS_COST_PER_LITER_EXP = "[USD/L] Gasoline cost for PHEV charge-sustaining mode. Default $0.95/L (~$3.60/gal, MD avg 2025).";
+    private static final String PHEV_CS_EFFICIENCY = "phevCSEfficiency";
+    static final String PHEV_CS_EFFICIENCY_EXP = "[fraction 0-1] PHEV charge-sustaining engine thermal efficiency. Default 0.30 (30%). Raghavan & Tal (2020).";
+
+    // ── Multi-day SoC persistence constants ─────────────────────────────────
+
+    private static final String ENABLE_SOC_PERSISTENCE = "enableSocPersistence";
+    static final String ENABLE_SOC_PERSISTENCE_EXP = "Carry over per-vehicle end-of-day SoC to next iteration's initial SoC. Baum et al. (2022).";
+
+    // ── Workplace charger competition constants ─────────────────────────────
+
+    private static final String WORKPLACE_CHARGER_RATIO = "workplaceChargerRatio";
+    static final String WORKPLACE_CHARGER_RATIO_EXP = "[integer] Number of EV workers per shared workplace charger plug. Default 5 (1:5). Wood et al. (2018, NREL).";
+    private static final String WORKPLACE_CLUSTER_RADIUS = "workplaceClusterRadius";
+    static final String WORKPLACE_CLUSTER_RADIUS_EXP = "[m] Grid cell size for clustering work locations into shared charger pools. Default 500m.";
+
+    // ── Charging cost awareness constants ────────────────────────────────────
+
+    private static final String CHARGING_COST_SENSITIVITY = "chargingCostSensitivity";
+    static final String CHARGING_COST_SENSITIVITY_EXP = "Softmax temperature for cost-weighted charger selection in ChangeChargingBehaviour. Higher = stronger preference for cheaper options. Default 3.0. Ge et al. (2023).";
+
+    // ── Charger reliability constants ────────────────────────────────────────
+
+    private static final String ENABLE_CHARGER_RELIABILITY = "enableChargerReliability";
+    static final String ENABLE_CHARGER_RELIABILITY_EXP = "Enable per-iteration stochastic charger downtime. Rempel et al. (2022, NREL).";
+    private static final String DCFC_CHARGER_UPTIME = "dcfcChargerUptime";
+    static final String DCFC_CHARGER_UPTIME_EXP = "[fraction 0-1] Per-plug uptime probability for DCFC chargers. Default 0.80. NREL TP-5400-83459.";
+    private static final String L2_CHARGER_UPTIME = "l2ChargerUptime";
+    static final String L2_CHARGER_UPTIME_EXP = "[fraction 0-1] Per-plug uptime probability for L2 chargers. Default 0.92. NREL TP-5400-83459.";
+
 
     // ═════════════════════════════════════════════════════════════════════════
     //  Field declarations
@@ -265,6 +300,44 @@ public final class UrbanEVConfigGroup extends ReflectiveConfigGroup {
     private double awarenessFactor = 0.0;
     private double coincidenceFactor = 0.0;
 
+    // ── PHEV gas fallback fields ─────────────────────────────────────────────
+
+    @PositiveOrZero
+    private double phevMinSocFraction = 0.15;
+
+    @PositiveOrZero
+    private double phevGasCostPerLiter = 0.95;
+
+    @Positive
+    private double phevCSEfficiency = 0.30;
+
+    // ── Multi-day SoC persistence fields ─────────────────────────────────────
+
+    private boolean enableSocPersistence = true;
+
+    // ── Workplace charger competition fields ─────────────────────────────────
+
+    @Positive
+    private int workplaceChargerRatio = 5;
+
+    @Positive
+    private double workplaceClusterRadius = 500.0;
+
+    // ── Charging cost awareness fields ───────────────────────────────────────
+
+    @PositiveOrZero
+    private double chargingCostSensitivity = 3.0;
+
+    // ── Charger reliability fields ───────────────────────────────────────────
+
+    private boolean enableChargerReliability = false;
+
+    @PositiveOrZero
+    private double dcfcChargerUptime = 0.80;
+
+    @PositiveOrZero
+    private double l2ChargerUptime = 0.92;
+
 
     // ═════════════════════════════════════════════════════════════════════════
     //  Constructor
@@ -354,6 +427,26 @@ public final class UrbanEVConfigGroup extends ReflectiveConfigGroup {
         map.put(AWARENESS_FACTOR, "Probability [0.0-1.0] of an agent being aware of ToU pricing and willing to shift charging start.");
         map.put(ALPHA_SCALE_TEMPORAL, "Temporal preference index in [0,2]. 0 biases shifted charging near start of low-ToU; "
                 + "2 biases near end of low-ToU; 1 biases mid-window.");
+
+        // PHEV gas fallback
+        map.put(PHEV_MIN_SOC_FRACTION, PHEV_MIN_SOC_FRACTION_EXP);
+        map.put(PHEV_GAS_COST_PER_LITER, PHEV_GAS_COST_PER_LITER_EXP);
+        map.put(PHEV_CS_EFFICIENCY, PHEV_CS_EFFICIENCY_EXP);
+
+        // Multi-day SoC persistence
+        map.put(ENABLE_SOC_PERSISTENCE, ENABLE_SOC_PERSISTENCE_EXP);
+
+        // Workplace charger competition
+        map.put(WORKPLACE_CHARGER_RATIO, WORKPLACE_CHARGER_RATIO_EXP);
+        map.put(WORKPLACE_CLUSTER_RADIUS, WORKPLACE_CLUSTER_RADIUS_EXP);
+
+        // Charging cost awareness
+        map.put(CHARGING_COST_SENSITIVITY, CHARGING_COST_SENSITIVITY_EXP);
+
+        // Charger reliability
+        map.put(ENABLE_CHARGER_RELIABILITY, ENABLE_CHARGER_RELIABILITY_EXP);
+        map.put(DCFC_CHARGER_UPTIME, DCFC_CHARGER_UPTIME_EXP);
+        map.put(L2_CHARGER_UPTIME, L2_CHARGER_UPTIME_EXP);
 
         return map;
     }
@@ -800,6 +893,77 @@ public final class UrbanEVConfigGroup extends ReflectiveConfigGroup {
             this.alphaScaleTemporal = v;
         }
     }
+
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Getters and Setters — PHEV gas fallback
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @StringGetter(PHEV_MIN_SOC_FRACTION)
+    public double getPhevMinSocFraction() { return phevMinSocFraction; }
+    @StringSetter(PHEV_MIN_SOC_FRACTION)
+    public void setPhevMinSocFraction(double v) { this.phevMinSocFraction = v; }
+
+    @StringGetter(PHEV_GAS_COST_PER_LITER)
+    public double getPhevGasCostPerLiter() { return phevGasCostPerLiter; }
+    @StringSetter(PHEV_GAS_COST_PER_LITER)
+    public void setPhevGasCostPerLiter(double v) { this.phevGasCostPerLiter = v; }
+
+    @StringGetter(PHEV_CS_EFFICIENCY)
+    public double getPhevCSEfficiency() { return phevCSEfficiency; }
+    @StringSetter(PHEV_CS_EFFICIENCY)
+    public void setPhevCSEfficiency(double v) { this.phevCSEfficiency = v; }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Getters and Setters — Multi-day SoC persistence
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @StringGetter(ENABLE_SOC_PERSISTENCE)
+    public boolean isEnableSocPersistence() { return enableSocPersistence; }
+    @StringSetter(ENABLE_SOC_PERSISTENCE)
+    public void setEnableSocPersistence(boolean v) { this.enableSocPersistence = v; }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Getters and Setters — Workplace charger competition
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @StringGetter(WORKPLACE_CHARGER_RATIO)
+    public int getWorkplaceChargerRatio() { return workplaceChargerRatio; }
+    @StringSetter(WORKPLACE_CHARGER_RATIO)
+    public void setWorkplaceChargerRatio(int v) { this.workplaceChargerRatio = v; }
+
+    @StringGetter(WORKPLACE_CLUSTER_RADIUS)
+    public double getWorkplaceClusterRadius() { return workplaceClusterRadius; }
+    @StringSetter(WORKPLACE_CLUSTER_RADIUS)
+    public void setWorkplaceClusterRadius(double v) { this.workplaceClusterRadius = v; }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Getters and Setters — Charging cost awareness
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @StringGetter(CHARGING_COST_SENSITIVITY)
+    public double getChargingCostSensitivity() { return chargingCostSensitivity; }
+    @StringSetter(CHARGING_COST_SENSITIVITY)
+    public void setChargingCostSensitivity(double v) { this.chargingCostSensitivity = v; }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Getters and Setters — Charger reliability
+    // ═════════════════════════════════════════════════════════════════════════
+
+    @StringGetter(ENABLE_CHARGER_RELIABILITY)
+    public boolean isEnableChargerReliability() { return enableChargerReliability; }
+    @StringSetter(ENABLE_CHARGER_RELIABILITY)
+    public void setEnableChargerReliability(boolean v) { this.enableChargerReliability = v; }
+
+    @StringGetter(DCFC_CHARGER_UPTIME)
+    public double getDcfcChargerUptime() { return dcfcChargerUptime; }
+    @StringSetter(DCFC_CHARGER_UPTIME)
+    public void setDcfcChargerUptime(double v) { this.dcfcChargerUptime = v; }
+
+    @StringGetter(L2_CHARGER_UPTIME)
+    public double getL2ChargerUptime() { return l2ChargerUptime; }
+    @StringSetter(L2_CHARGER_UPTIME)
+    public void setL2ChargerUptime(double v) { this.l2ChargerUptime = v; }
 
 
     // ═════════════════════════════════════════════════════════════════════════

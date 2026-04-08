@@ -180,6 +180,16 @@ public class GotEVMain {
             }
         });
 
+        // ── Charger reliability (Rempel et al. 2022, NREL) ─────────────────────
+        // Randomly disables charger plugs per iteration to simulate real-world
+        // downtime. Only active when enableChargerReliability=true in config.
+        controler.addOverridingModule(new AbstractModule() {
+            @Override
+            public void install() {
+                addControlerListenerBinding().to(se.urbanEV.charging.ChargerReliabilityManager.class);
+            }
+        });
+
         // ── Scoring function ──────────────────────────────────────────────────
         // Todo: replace with CharyparNagelScoringFunctionFactory when calibrated params available
         controler.setScoringFunctionFactory(new ScoringFunctionFactory() {

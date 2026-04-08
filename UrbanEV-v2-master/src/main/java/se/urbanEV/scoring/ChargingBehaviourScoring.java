@@ -17,7 +17,8 @@ public class ChargingBehaviourScoring implements SumScoringFunction.ArbitraryEve
         ENERGY_BALANCE,
         CHARGING_COST,   // OmkarP.(2025): monetary cost of energy
         DETOUR_TIME,     // disutility of extra travel to reach an en-route charger
-        QUEUE_WAIT       // disutility of waiting for a free plug
+        QUEUE_WAIT,      // disutility of waiting for a free plug
+        GASOLINE_COST    // OmkarP.(2025): monetary cost of gasoline for PHEVs in CS mode
     }
 
     /** Fallback value-of-time when no person attribute is set (USD/hr for median MD worker). */

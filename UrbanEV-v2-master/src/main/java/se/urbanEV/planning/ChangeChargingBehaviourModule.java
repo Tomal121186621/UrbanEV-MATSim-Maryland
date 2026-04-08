@@ -142,15 +142,61 @@ public class ChangeChargingBehaviourModule implements PlanStrategyModule, Chargi
         }
     }
 
+    /**
+     * Select an activity to add charging, weighted by estimated charging cost.
+     * Cheaper locations (home, work) are preferred over expensive public chargers.
+     * Uses softmax-style weighting: weight = exp(-beta * cost_per_kWh).
+     *
+     * <p>Based on Ge et al. (2023) price-responsive EV charging model and
+     * Chakraborty et al. (2020) price elasticity findings.
+     *
+     * @see UrbanEVConfigGroup#getChargingCostSensitivity()
+     */
     private void addChargingActivity(List<PlanElement> planElements, ArrayList<Integer> noChargingActIds) {
-        // select random activity without charging and change to activity with charging
         int n = noChargingActIds.size();
-        if (n > 0) {
-            int randInt = random.nextInt(n);
-            int actId = noChargingActIds.get(randInt);
-            Activity selectedActivity = (Activity) planElements.get(actId);
-            selectedActivity.setType(selectedActivity.getType() + CHARGING_IDENTIFIER);
+        if (n == 0) return;
+
+        double beta = evCfg.getChargingCostSensitivity(); // default 3.0
+
+        // Calculate cost-weighted probabilities for each candidate
+        double[] weights = new double[n];
+        double totalWeight = 0;
+
+        for (int i = 0; i < n; i++) {
+            int actId = noChargingActIds.get(i);
+            Activity act = (Activity) planElements.get(actId);
+            String actType = act.getType();
+
+            // Estimate per-kWh charging cost at this location type
+            double costPerKwh;
+            if (actType.startsWith("home")) {
+                costPerKwh = evCfg.getHomeChargingCost();       // $0.13
+            } else if (actType.startsWith("work")) {
+                costPerKwh = evCfg.getWorkChargingCost();       // $0.00
+            } else {
+                costPerKwh = evCfg.getPublicL2Cost();           // $0.25
+            }
+
+            // Softmax: lower cost → higher weight
+            weights[i] = Math.exp(-beta * costPerKwh);
+            totalWeight += weights[i];
         }
+
+        // Weighted random selection
+        double r = random.nextDouble() * totalWeight;
+        double cumulative = 0;
+        int selectedIdx = 0;
+        for (int i = 0; i < n; i++) {
+            cumulative += weights[i];
+            if (r <= cumulative) {
+                selectedIdx = i;
+                break;
+            }
+        }
+
+        int actId = noChargingActIds.get(selectedIdx);
+        Activity selectedActivity = (Activity) planElements.get(actId);
+        selectedActivity.setType(selectedActivity.getType() + CHARGING_IDENTIFIER);
     }
 
     private void removeChargingActivity(List<PlanElement> planElements, ArrayList<Integer> successfulChargingActIds) {
