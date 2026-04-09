@@ -266,30 +266,118 @@ public class MobsimScopeEventHandling implements StartupListener, AfterMobsimLis
 			return;
 		}
 
+		// ── Realistic overnight home charging (NREL 2023, INL 2015, Xu et al. 2023) ──
+		// For each agent with a home charger:
+		//   1. SoC-dependent plug-in probability (NREL Wood et al. 2023)
+		//   2. Target SoC varies by vehicle type (Tesla 80%, non-Tesla 80-100%, PHEV 100%)
+		//   3. L1 limited to ~11 kWh overnight (8hrs × 1.4kW)
+		//   4. L2 delivers up to ~58 kWh (8hrs × 7.2kW)
+		// Agents WITHOUT home chargers: no overnight recovery, raw SoC carried forward.
+
 		int updated = 0;
+		int homeCharged = 0;
+		int pluggedIn = 0;
+		int noCharger = 0;
+		double overnightHours = 8.0;  // typical overnight plug-in duration
+
 		for (java.util.Map.Entry<Id<ElectricVehicle>, ElectricVehicleSpecification> entry
 				: electricFleetSpecification.getVehicleSpecifications().entrySet()) {
 			Id<ElectricVehicle> evId = entry.getKey();
 			ElectricVehicleSpecification oldSpec = entry.getValue();
 			Double finalSoc = finalSocMap.get(evId);
 
-			if (finalSoc != null) {
-				// Clamp SoC: ensure it's within [0, capacity]
-				double clampedSoc = Math.max(0, Math.min(finalSoc, oldSpec.getBatteryCapacity()));
+			if (finalSoc == null) continue;
 
-				ElectricVehicleSpecification newSpec = ImmutableElectricVehicleSpecification.newBuilder()
-						.id(evId)
-						.vehicleType(oldSpec.getVehicleType())
-						.chargerTypes(oldSpec.getChargerTypes())
-						.initialSoc(clampedSoc)
-						.batteryCapacity(oldSpec.getBatteryCapacity())
-						.build();
-				electricFleetSpecification.replaceVehicleSpecification(newSpec);
-				updated++;
+			double capacity = oldSpec.getBatteryCapacity(); // Joules
+			double currentSoc = Math.max(0, Math.min(finalSoc, capacity));
+			double socFraction = currentSoc / capacity;
+
+			// Look up person's home charger power
+			String personId = evId.toString();
+			Person person = population.getPersons().get(Id.createPersonId(personId));
+			double homeChargerKw = 0.0;
+			if (person != null) {
+				Object hcAttr = person.getAttributes().getAttribute("homeChargerPower");
+				if (hcAttr != null) {
+					try { homeChargerKw = Double.parseDouble(hcAttr.toString()); }
+					catch (NumberFormatException ignored) {}
+				}
 			}
+
+			if (homeChargerKw > 0) {
+				// ── SoC-dependent plug-in probability (NREL 2023) ──
+				double plugInProb;
+				if (socFraction < 0.30)      plugInProb = 0.95;
+				else if (socFraction < 0.50) plugInProb = 0.85;
+				else if (socFraction < 0.70) plugInProb = 0.65;
+				else if (socFraction < 0.90) plugInProb = 0.35;
+				else                         plugInProb = 0.10;
+
+				// PHEV owners plug in less often (INL: 78% of BEV rate)
+				String typeName = oldSpec.getVehicleType().getId().toString().toLowerCase();
+				boolean isPhev = typeName.contains("phev") || typeName.contains("4xe")
+						|| typeName.contains("prime") || typeName.contains("recharge")
+						|| typeName.contains("350e") || typeName.contains("xdrive");
+				if (isPhev) plugInProb *= 0.78;
+
+				if (random.nextDouble() < plugInProb) {
+					pluggedIn++;
+
+					// ── Target SoC (Xu et al. 2023, Figenbaum 2016) ──
+					double targetFraction;
+					if (isPhev) {
+						// PHEVs: 90% charge to 100%, 10% to 80%
+						targetFraction = (random.nextDouble() < 0.90) ? 1.00 : 0.80;
+					} else {
+						boolean isTesla = typeName.contains("model_") || typeName.contains("cybertruck");
+						if (isTesla) {
+							// Tesla: 60% → 80%, 25% → 90%, 15% → 100%
+							double r = random.nextDouble();
+							if (r < 0.60)      targetFraction = 0.80;
+							else if (r < 0.85)  targetFraction = 0.90;
+							else                 targetFraction = 1.00;
+						} else {
+							// Non-Tesla BEV: 40% → 80%, 25% → 90%, 35% → 100%
+							double r = random.nextDouble();
+							if (r < 0.40)      targetFraction = 0.80;
+							else if (r < 0.65)  targetFraction = 0.90;
+							else                 targetFraction = 1.00;
+						}
+					}
+
+					double targetSocJ = targetFraction * capacity;
+
+					// ── Charge limited by charger power × overnight hours ──
+					double maxDeliveryJ = homeChargerKw * 1000.0 * overnightHours * 3600.0; // kW→W→J
+					double energyNeededJ = Math.max(0, targetSocJ - currentSoc);
+					double energyDeliveredJ = Math.min(energyNeededJ, maxDeliveryJ);
+
+					currentSoc = currentSoc + energyDeliveredJ;
+					homeCharged++;
+				}
+				// else: didn't plug in — carry forward raw SoC
+			} else {
+				noCharger++;
+				// No home charger — no overnight recovery. Raw SoC carried forward.
+				// These agents depend on workplace/public charging during the day.
+			}
+
+			// Update specification with new initial SoC
+			double clampedSoc = Math.max(0, Math.min(currentSoc, capacity));
+			ElectricVehicleSpecification newSpec = ImmutableElectricVehicleSpecification.newBuilder()
+					.id(evId)
+					.vehicleType(oldSpec.getVehicleType())
+					.chargerTypes(oldSpec.getChargerTypes())
+					.initialSoc(clampedSoc)
+					.batteryCapacity(oldSpec.getBatteryCapacity())
+					.build();
+			electricFleetSpecification.replaceVehicleSpecification(newSpec);
+			updated++;
 		}
 
-		log.info("SoC persistence: updated initial SoC for " + updated + " vehicles (iteration " + iterationNumber + ")");
+		log.info(String.format(
+				"SoC persistence (iter %d): %d vehicles updated | %d plugged in | %d home charged | %d no home charger",
+				iterationNumber, updated, pluggedIn, homeCharged, noCharger));
 
 		// Write fleet state at final iteration for external analysis
 		if (iterationNumber == lastIteration) {
