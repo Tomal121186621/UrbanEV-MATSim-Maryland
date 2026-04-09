@@ -235,8 +235,10 @@ def derive_range_anxiety_threshold(income: int, age: int) -> float:
 
 
 def derive_beta_money(income: int) -> float:
-    midpoint = INCOME_MIDPOINTS.get(income, 62_500)
-    return round(-6.0 * (62_500 / max(midpoint, 7_500)), 3)
+    """Square-root income elasticity (Kickhofer et al. 2011, TRB).
+    Reference income = $125K (actual median of MD EV agent population)."""
+    midpoint = INCOME_MIDPOINTS.get(income, 125_000)
+    return round(-1.0 * (125_000 / max(midpoint, 7_500)) ** 0.5, 3)
 
 
 def derive_risk_attitude(income: int, age: int) -> str:

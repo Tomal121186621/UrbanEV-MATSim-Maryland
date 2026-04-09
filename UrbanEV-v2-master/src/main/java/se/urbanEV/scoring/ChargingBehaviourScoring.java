@@ -132,7 +132,7 @@ public class ChargingBehaviourScoring implements SumScoringFunction.ArbitraryEve
             // 3. WALKING_DISTANCE: exponential penalty for walking to charger
             double walkingDistance = ev.getWalkingDistance();
             if (activityType != null && activityType.contains(CHARGING_IDENTIFIER)) {
-                double beta = 0.005; // Geurs & van Wee (2004) Eq. 1
+                double beta = 0.003; // Geurs & van Wee (2004), suburban calibration
                 double delta = params.marginalUtilityOfWalking_m
                              * (1.0 - Math.exp(-beta * walkingDistance));
                 collector.addScoringComponentValue(ScoreComponents.WALKING_DISTANCE, delta);

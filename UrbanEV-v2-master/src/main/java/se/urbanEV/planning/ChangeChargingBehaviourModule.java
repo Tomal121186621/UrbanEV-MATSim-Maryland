@@ -59,10 +59,17 @@ public class ChangeChargingBehaviourModule implements PlanStrategyModule, Chargi
                     Activity act = (Activity) pe;
                     if (act.getType().endsWith(CHARGING_IDENTIFIER)) {
                         successfulChargingActIds.add(i);
-                    } else if (act.getType().endsWith(CHARGING_FAILED_IDENTIFIER)) {
-                        // remove and possibly change activity or time
+                    } else if (act.getType().endsWith(CHARGING_FAILED_IDENTIFIER)
+                               || act.getType().contains(" failed")) {
+                        // Strip ALL charging/failed suffixes to prevent accumulation
+                        // across iterations (e.g., "other failed charging failed" → "other")
                         failedChargingActIds.add(i);
-                        act.setType(act.getType().replace(CHARGING_FAILED_IDENTIFIER, ""));
+                        String baseType = act.getType()
+                                .replace(CHARGING_FAILED_IDENTIFIER, "")
+                                .replace(CHARGING_IDENTIFIER, "")
+                                .replace(" failed", "")
+                                .trim();
+                        act.setType(baseType);
                     } else {
                         noChargingActIds.add(i);
                     }

@@ -307,17 +307,17 @@
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <parameterset type="strategysettings">
         <param name="strategyName" value="SelectExpBeta"/>
-        <param name="weight" value="0.6"/>
+        <param name="weight" value="0.55"/>
         <param name="subpopulation" value="nonCriticalSOC"/>
     </parameterset>
     <parameterset type="strategysettings">
         <param name="strategyName" value="ChangeChargingBehaviour"/>
-        <param name="weight" value="0.2"/>
+        <param name="weight" value="0.25"/>
         <param name="subpopulation" value="nonCriticalSOC"/>
     </parameterset>
     <parameterset type="strategysettings">
         <param name="strategyName" value="InsertEnRouteCharging"/>
-        <param name="weight" value="0.2"/>
+        <param name="weight" value="0.20"/>
         <param name="subpopulation" value="nonCriticalSOC"/>
     </parameterset>
 
@@ -342,14 +342,14 @@
 <module name="urban_ev">
 
     <!-- ~~~ Core parameters ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-    <param name="parkingSearchRadius" value="2000"/>
+    <param name="parkingSearchRadius" value="1500"/>
     <param name="defaultRangeAnxietyThreshold" value="0.322"/>
     <param name="vehicleTypesFile" value="../../Input Files/urbanev_vehicletypes.xml"/>  <!-- Sweden format required by ElectricVehicleTypesReader -->
     <!-- ~~~ Utility weights ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <param name="rangeAnxietyUtility" value="-6"/>
-    <param name="emptyBatteryUtility" value="-15"/>
-    <param name="walkingUtility" value="-1"/>
-    <param name="homeChargingUtility" value="1"/>
+    <param name="emptyBatteryUtility" value="-40"/>
+    <param name="walkingUtility" value="-2.5"/>
+    <param name="homeChargingUtility" value="2.5"/>
     <param name="socDifferenceUtility" value="-4"/>
 
     <!-- ~~~ Plan mutation controls ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->

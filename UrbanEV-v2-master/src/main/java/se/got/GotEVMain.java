@@ -250,10 +250,12 @@ public class GotEVMain {
             for (Person person : population.getPersons().values()) {
                 double midpoint = resolveIncomeMidpoint(person, incomeMidpoints);
 
-                // betaMoney: -6.0 * (62500 / midpoint)
+                // betaMoney: -1.0 * sqrt(125000 / midpoint)
+                // Square-root income elasticity (Kickhofer et al. 2011, TRB).
+                // Reference income = $125K (actual median of MD EV agent population).
                 // Keep existing attribute if already set (e.g. from preprocessing or prior run).
                 if (person.getAttributes().getAttribute("betaMoney") == null) {
-                    double betaMoney = -6.0 * (62500.0 / midpoint);
+                    double betaMoney = -1.0 * Math.sqrt(125000.0 / midpoint);
                     person.getAttributes().putAttribute("betaMoney", betaMoney);
                     betaCount++;
                 }
