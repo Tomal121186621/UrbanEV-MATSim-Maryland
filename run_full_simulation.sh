@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ============================================================================
 # run_full_simulation.sh
-# Runs the full Maryland+DC EV simulation (116K agents, 60 iterations).
-# Tuned for AMD Ryzen 7 2700X (8 cores / 16 threads), 128 GB RAM.
+# Runs the full Maryland+DC UrbanEV simulation.
+# Auto-detects available RAM and CPU cores. Works on 64 GB+ systems.
 #
 # Usage:
 #   cd "UrbanEV-MATSim-Maryland-main"
@@ -10,7 +10,7 @@
 #
 # Output:
 #   scenarios/maryland/output/maryland_ev_enhanced/
-#   Log: full_simulation.log (tailed to console, full log to file)
+#   Log: full_simulation.log
 # ============================================================================
 
 set -euo pipefail
@@ -22,7 +22,9 @@ JAR_FILE="$PROJECT_ROOT/target/urban_ev-0.1-jar-with-dependencies.jar"
 LOG_FILE="$SCRIPT_DIR/full_simulation.log"
 
 # Add Maven to PATH if installed at standard location
-export PATH="/c/tools/apache-maven-3.9.9/bin:$PATH"
+if [ -d "/c/tools/apache-maven-3.9.9/bin" ]; then
+    export PATH="/c/tools/apache-maven-3.9.9/bin:$PATH"
+fi
 
 SKIP_BUILD=false
 for arg in "$@"; do
@@ -41,6 +43,32 @@ ok()   { echo -e "${GREEN}[OK]${NC}  $*"; }
 fail() { echo -e "${RED}[FAIL]${NC} $*"; exit 1; }
 info() { echo -e "${YELLOW}[INFO]${NC} $*"; }
 
+# ── Auto-detect system resources ─────────────────────────────────────────────
+TOTAL_RAM_KB=$(grep MemTotal /proc/meminfo 2>/dev/null | awk '{print $2}' || echo 0)
+TOTAL_RAM_GB=$((TOTAL_RAM_KB / 1024 / 1024))
+NUM_CORES=$(nproc 2>/dev/null || echo 4)
+
+# Reserve ~25% for OS + overhead, use 75% for JVM
+JVM_MAX_GB=$((TOTAL_RAM_GB * 75 / 100))
+if [ "$JVM_MAX_GB" -lt 48 ]; then
+    fail "Insufficient RAM: ${TOTAL_RAM_GB}GB detected, need at least 64GB. The 9.8M link network requires ~50GB."
+fi
+if [ "$JVM_MAX_GB" -gt 120 ]; then
+    JVM_MAX_GB=120  # cap — no need for more
+fi
+
+# QSim threads: cores - 2 (leave room for OS and GC)
+QSIM_THREADS=$((NUM_CORES - 2))
+if [ "$QSIM_THREADS" -lt 2 ]; then QSIM_THREADS=2; fi
+if [ "$QSIM_THREADS" -gt 14 ]; then QSIM_THREADS=14; fi
+
+# GC threads: ~cores
+GC_THREADS=$((NUM_CORES))
+if [ "$GC_THREADS" -gt 14 ]; then GC_THREADS=14; fi
+
+info "System: ${TOTAL_RAM_GB}GB RAM, ${NUM_CORES} cores"
+info "JVM:    -Xmx${JVM_MAX_GB}g, ${QSIM_THREADS} QSim threads, ${GC_THREADS} GC threads"
+
 # ── Step 1: Maven build ───────────────────────────────────────────────────────
 if [ "$SKIP_BUILD" = false ]; then
     info "Step 1: Building UrbanEV-v2 JAR (Maven)..."
@@ -58,29 +86,19 @@ fi
 info "Using JAR: $JAR_FILE"
 
 # ── Step 2: Run simulation ────────────────────────────────────────────────────
-info "Step 2: Launching full Maryland+DC simulation (116K agents, 60 iterations)..."
-info "Log → $LOG_FILE"
+info "Step 2: Launching simulation (130K agents, 30 iterations)..."
+info "Log: $LOG_FILE"
 info "Config: $CONFIG_FILE"
 echo ""
 
 cd "$SCRIPT_DIR"
 
-# JVM tuning for AMD Ryzen 7 2700X (8 cores / 16 threads, 128 GB RAM):
-#   -Xmx64g          — 64 GB heap; plenty of headroom with 128 GB total
-#   -Xms16g          — pre-allocate 16 GB to avoid early GC pressure
-#   -XX:+UseG1GC     — G1 GC: best latency/throughput balance for large heaps
-#   -XX:G1HeapRegionSize=32m  — 32 MB regions suits large heap
-#   -XX:ParallelGCThreads=12  — GC uses 12 threads
-#   -XX:ConcGCThreads=4       — concurrent GC marking threads
-#   -XX:+UseStringDeduplication — reduces repeated String objects in plans/events
-#   --add-opens       — required for Guice CGLIB proxy generation on JDK 17+
-
 java \
-    -Xmx64g \
-    -Xms16g \
+    -Xmx${JVM_MAX_GB}g \
+    -Xms8g \
     -XX:+UseG1GC \
     -XX:G1HeapRegionSize=32m \
-    -XX:ParallelGCThreads=12 \
+    -XX:ParallelGCThreads=${GC_THREADS} \
     -XX:ConcGCThreads=4 \
     -XX:+UseStringDeduplication \
     --add-opens java.base/java.lang=ALL-UNNAMED \
@@ -90,7 +108,7 @@ java \
     se.got.GotEVMain \
     "$CONFIG_FILE" \
     0 \
-    2>&1 | tee "$LOG_FILE" | grep -E "(INFO|WARN|ERROR|Exception|Iteration|it\.|score|SIM_STEP|Mobsim|Replanning)" | grep -v "^$"
+    2>&1 | tee "$LOG_FILE" | grep -E "(INFO|WARN|ERROR|Exception|Iteration|it\.|score|SIM_STEP|Mobsim|Replanning|SocProblem|InsertEnRoute|SoC persistence|Workplace|ChargerReliability|HOME session)" | grep -v "^$"
 
 SIM_EXIT=${PIPESTATUS[0]}
 
