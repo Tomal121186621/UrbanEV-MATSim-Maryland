@@ -49,7 +49,10 @@ public class ChargingModule extends AbstractModule {
 
 			@Override
 			public ChargingLogic.Factory get() {
-				return charger -> new ChargingLogicImpl(charger, new ChargeUpToMaxSocStrategy(charger, 1.),
+				// Target 85% SoC (weighted average: Tesla 84%, non-Tesla 88%, PHEV 100%)
+				// Based on Xu et al. 2023 Nature Energy; Figenbaum 2016
+				// Agents rarely charge to 100% daily — manufacturer-recommended 80-90%
+				return charger -> new ChargingLogicImpl(charger, new ChargeUpToMaxSocStrategy(charger, 0.85),
 						eventsManager);
 			}
 		});
