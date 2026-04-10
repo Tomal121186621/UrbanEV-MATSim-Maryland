@@ -55,7 +55,7 @@
 <module name="controler">
     <param name="outputDirectory" value="output/maryland_ev_enhanced/"/>
     <param name="firstIteration" value="0"/>
-    <param name="lastIteration" value="30"/>
+    <param name="lastIteration" value="60"/>
     <param name="writeEventsInterval" value="5"/>          <!-- events every 5 iters -->
     <param name="writePlansInterval" value="5"/>           <!-- plans every 5 iters -->
     <param name="writeSnapshotsInterval" value="10"/>      <!-- Via snapshots every 10 iters -->
@@ -70,7 +70,7 @@
 <!-- ======================================================================= -->
 <module name="qsim">
     <param name="startTime" value="00:00:00"/>
-    <param name="endTime" value="240:00:00"/>
+    <param name="endTime" value="30:00:00"/>
     <param name="flowCapacityFactor" value="1.0"/>
     <param name="storageCapacityFactor" value="1.0"/>
     <param name="numberOfThreads" value="14"/>    <!-- Ryzen 7 2700X: 16 threads, leave 2 for OS/GC -->
@@ -307,12 +307,12 @@
     <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <parameterset type="strategysettings">
         <param name="strategyName" value="SelectExpBeta"/>
-        <param name="weight" value="0.55"/>
+        <param name="weight" value="0.45"/>
         <param name="subpopulation" value="nonCriticalSOC"/>
     </parameterset>
     <parameterset type="strategysettings">
         <param name="strategyName" value="ChangeChargingBehaviour"/>
-        <param name="weight" value="0.25"/>
+        <param name="weight" value="0.35"/>
         <param name="subpopulation" value="nonCriticalSOC"/>
     </parameterset>
     <parameterset type="strategysettings">
