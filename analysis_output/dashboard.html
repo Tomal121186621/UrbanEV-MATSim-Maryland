@@ -32,13 +32,13 @@ td:first-child { text-align: left; }
 <div class="card">
 <h3>Key Metrics</h3>
 <span class="metric">Agents: 130,837</span>
-<span class="metric">Stuck: 66 (0.05%)</span>
-<span class="metric info">Charging Sessions: 38,690</span>
-<span class="metric info">En-Route Insertions: 36,070</span>
-<span class="metric">Home Sessions: 13,818</span>
-<span class="metric">Work Sessions: 7,978</span>
-<span class="metric">Public Sessions: 16,894</span>
-<span class="metric warn">Low SoC (<20%): 105,544 events</span>
+<span class="metric">Stuck: 2237 (0.05%)</span>
+<span class="metric info">Charging Sessions: 36,133</span>
+<span class="metric info">En-Route Insertions: 29,122</span>
+<span class="metric">Home Sessions: 12,593</span>
+<span class="metric">Work Sessions: 7,135</span>
+<span class="metric">Public Sessions: 16,405</span>
+<span class="metric warn">Low SoC (<20%): 96,784 events</span>
 </div>
 <div class="card">
 <h3>Score Convergence</h3>
@@ -108,13 +108,13 @@ td:first-child { text-align: left; }
 <h2>Charger Type Details</h2>
 <table>
 <tr><th>Type</th><th>Sessions</th><th>Avg kWh</th><th>Median kWh</th><th>Total kWh</th><th>Avg Power (kW)</th></tr>
-<tr><td>Home</td><td>13,818</td><td>2.60</td><td>1.75</td><td>35,881.3</td><td>6.4</td></tr>
-<tr><td>Work</td><td>7,978</td><td>10.17</td><td>5.71</td><td>81,141.4</td><td>12.2</td></tr>
-<tr><td>Public</td><td>16,894</td><td>3.91</td><td>1.28</td><td>66,022.1</td><td>11.3</td></tr>
+<tr><td>Home</td><td>12,593</td><td>1.91</td><td>1.15</td><td>24,012.1</td><td>6.4</td></tr>
+<tr><td>Work</td><td>7,135</td><td>5.71</td><td>2.74</td><td>40,747.0</td><td>12.2</td></tr>
+<tr><td>Public</td><td>16,405</td><td>2.60</td><td>0.75</td><td>42,721.2</td><td>11.3</td></tr>
 </table>
 
 <div class="footer">
-Generated from iteration 5 events | 550,192 scoring events analyzed<br>
+Generated from iteration 5 events | 541,770 scoring events analyzed<br>
 UrbanEV-v2 Maryland | github.com/Tomal121186621/UrbanEV-MATSim-Maryland
 </div>
 
@@ -131,9 +131,9 @@ new Chart(document.getElementById('chartScores'), {
     data: {
         labels: [0, 1, 2, 3, 4, 5],
         datasets: [
-            { label: 'Avg Best', data: [-1.367, -1.541, -1.715, -1.711, -1.598, -1.428], borderColor: colors.green, borderWidth: 3, fill: false },
-            { label: 'Avg Executed', data: [-1.367, -2.658, -4.091, -5.341, -6.23, -6.874], borderColor: colors.blue, borderWidth: 2, fill: false },
-            { label: 'Avg Worst', data: [-1.367, -3.09, -5.319, -7.455, -9.309, -10.973], borderColor: colors.red, borderWidth: 1, borderDash: [5,5], fill: false },
+            { label: 'Avg Best', data: [-1.258, -1.056, -0.874, -0.661, -0.408, -0.18], borderColor: colors.green, borderWidth: 3, fill: false },
+            { label: 'Avg Executed', data: [-1.258, -2.138, -3.253, -4.272, -4.984, -5.494], borderColor: colors.blue, borderWidth: 2, fill: false },
+            { label: 'Avg Worst', data: [-1.258, -2.828, -4.795, -6.628, -8.187, -9.539], borderColor: colors.red, borderWidth: 1, borderDash: [5,5], fill: false },
         ]
     },
     options: { plugins: { title: { display: true, text: 'Score Convergence Over Iterations' } } }
@@ -144,7 +144,7 @@ new Chart(document.getElementById('chartChargerType'), {
     type: 'doughnut',
     data: {
         labels: ["Home", "Work", "Public"],
-        datasets: [{ data: [13818, 7978, 16894], backgroundColor: [colors.green, colors.blue, colors.orange] }]
+        datasets: [{ data: [12593, 7135, 16405], backgroundColor: [colors.green, colors.blue, colors.orange] }]
     }
 });
 
@@ -153,7 +153,7 @@ new Chart(document.getElementById('chartChargerKwh'), {
     type: 'bar',
     data: {
         labels: ["Home", "Work", "Public"],
-        datasets: [{ label: 'Total kWh', data: [35881.3, 81141.4, 66022.1], backgroundColor: [colors.green, colors.blue, colors.orange] }]
+        datasets: [{ label: 'Total kWh', data: [24012.1, 40747.0, 42721.2], backgroundColor: [colors.green, colors.blue, colors.orange] }]
     }
 });
 
@@ -162,7 +162,7 @@ new Chart(document.getElementById('chartHourly'), {
     type: 'bar',
     data: {
         labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
-        datasets: [{ label: 'Sessions', data: [62, 35, 22, 42, 81, 218, 383, 988, 1345, 1334, 1359, 1578, 1592, 1594, 2382, 3453, 4171, 5339, 4518, 3333, 2210, 1408, 740, 503], backgroundColor: colors.purple }]
+        datasets: [{ label: 'Sessions', data: [44, 33, 18, 42, 73, 162, 366, 881, 1203, 1229, 1294, 1532, 1538, 1522, 2190, 3382, 4077, 4807, 4063, 3062, 2136, 1304, 735, 440], backgroundColor: colors.purple }]
     },
     options: { plugins: { title: { display: true, text: '24-Hour Charging Demand Profile' } } }
 });
@@ -172,7 +172,7 @@ new Chart(document.getElementById('chartEnergy'), {
     type: 'bar',
     data: {
         labels: ["<1", "1-5", "5-10", "10-20", "20-40", ">40"],
-        datasets: [{ label: 'Sessions', data: [13206, 15932, 4611, 3232, 1289, 420], backgroundColor: colors.teal }]
+        datasets: [{ label: 'Sessions', data: [17028, 13292, 3509, 1675, 455, 174], backgroundColor: colors.teal }]
     }
 });
 
@@ -181,7 +181,7 @@ new Chart(document.getElementById('chartSoC'), {
     type: 'bar',
     data: {
         labels: ["0-5%", "5-10%", "10-15%", "15-20%", "20-30%", "30-50%", "50-70%", "70-100%"],
-        datasets: [{ label: 'Events', data: [25353, 4437, 4682, 71072, 18669, 48785, 87750, 289444], backgroundColor: [colors.red, colors.red, colors.orange, colors.orange, colors.yellow, colors.blue, colors.green, colors.green] }]
+        datasets: [{ label: 'Events', data: [22135, 3778, 4009, 66862, 17391, 45399, 89012, 293184], backgroundColor: [colors.red, colors.red, colors.orange, colors.orange, colors.yellow, colors.blue, colors.green, colors.green] }]
     }
 });
 
@@ -190,7 +190,7 @@ new Chart(document.getElementById('chartWalking'), {
     type: 'bar',
     data: {
         labels: ["0-200", "200-400", "400-600", "600-800", "800-1000", "1000-1500"],
-        datasets: [{ label: 'Events', data: [3826, 4719, 4210, 3712, 3313, 6772], backgroundColor: colors.purple }]
+        datasets: [{ label: 'Events', data: [3075, 3948, 3716, 3624, 3532, 7561], backgroundColor: colors.purple }]
     },
     options: { plugins: { title: { display: true, text: 'Walking Distance to Charger (meters)' } } }
 });
@@ -200,7 +200,7 @@ new Chart(document.getElementById('chartPersist'), {
     type: 'line',
     data: {
         labels: [0, 1, 2, 3, 4, 5],
-        datasets: [{ label: 'Plugged In Overnight', data: [76381, 54354, 48139, 44430, 41761, 39372], borderColor: colors.green, backgroundColor: 'rgba(76,175,80,0.1)', fill: true }]
+        datasets: [{ label: 'Plugged In Overnight', data: [76109, 53632, 48858, 45798, 43745, 42522], borderColor: colors.green, backgroundColor: 'rgba(76,175,80,0.1)', fill: true }]
     }
 });
 
@@ -209,7 +209,7 @@ new Chart(document.getElementById('chartProblems'), {
     type: 'line',
     data: {
         labels: [1, 2, 3, 4, 5, 6],
-        datasets: [{ label: 'Agents with SoC Problems', data: [24681, 24720, 25375, 26197, 26425, 26430], borderColor: colors.red, backgroundColor: 'rgba(244,67,54,0.1)', fill: true }]
+        datasets: [{ label: 'Agents with SoC Problems', data: [24438, 24753, 24505, 25066, 25280, 25322], borderColor: colors.red, backgroundColor: 'rgba(244,67,54,0.1)', fill: true }]
     }
 });
 
@@ -228,7 +228,7 @@ new Chart(document.getElementById('chartEquityCharged'), {
     type: 'bar',
     data: {
         labels: ["$7,500", "$12,500", "$20,000", "$30,000", "$42,500", "$62,500", "$87,500", "$125,000", "$175,000", "$250,000"],
-        datasets: [{ label: 'Agents with Charging', data: [1, 160, 247, 480, 992, 3486, 4297, 9716, 15014, 3], backgroundColor: colors.blue }]
+        datasets: [{ label: 'Agents with Charging', data: [1, 135, 240, 424, 900, 3147, 3904, 9307, 14453, 2], backgroundColor: colors.blue }]
     }
 });
 </script>
