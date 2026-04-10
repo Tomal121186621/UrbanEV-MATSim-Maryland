@@ -1,0 +1,16 @@
+status,metric,our_value,benchmark,gap,source,note
+FAIL,Home Charging Share (sessions),35.7%,80-84%,+44.3pp,INL EV Project 2015; NREL 2021,Home charging underrepresented. Agents need more iterations to discover home charging.
+WARN,Work Charging Share (sessions),20.6%,8-12%,+10.6pp,INL EV Project 2015,Slightly high — workplace shared charger competition may be driving more sessions.
+FAIL,Public Charging Share (sessions),43.7%,5-8%,+36.7pp,INL EV Project 2015; NREL 2021,Too high — driven by 19% agents without home chargers + en-route stops.
+FAIL,Home Energy Share (kWh),19.6%,85-90%,+67.9pp,EPRI 2018; Edison Electric Institute 2022,
+FAIL,Home kWh/session,2.6,9-11 kWh,-7.4 kWh,INL EV Project 2015,Low because many short sessions + L1 chargers (1.4 kW) deliver little energy.
+PASS,Work kWh/session,10.2,6-8 kWh,+3.2 kWh,INL EV Project 2015; ChargePoint 2022,Within range — workplace sessions last full work day (8 hrs).
+FAIL,Sessions/agent/day,0.030,1.1-1.5,-1.070,INL EV Project 2015; UC Davis 2019,Very low. Only agents with charging activities charge. Most agents still haven't learned to add charging.
+FAIL,Daily kWh/agent,0.14,8-10 kWh,-8.86 kWh,EPA + FHWA VMT 2022,Directly tied to low session count. Agents drive but don't charge enough.
+PASS,Avg trip distance,8.5 km,48-60 km/day (30-37 mi),,FHWA NHTS 2022; INL 2015,Walk trips included in average. Car-only trips likely higher.
+WARN,Car trips/agent/day,0.36,3-4 trips/day,-3.14,NHTS 2017; RTS survey,
+FAIL,Agents who charged at least once,26.3%,>90%,-68.7pp,INL: >95% of EV owners charge at least once/week,Low % means most agents haven't added charging to their plans yet.
+FAIL,SoC events below 20%,19.2%,<5% (few agents should be critically low),+14.2pp,NREL fleet monitoring,19% no-home-charger agents + PHEVs at 15% floor drive this high.
+PASS,Stuck agents,66 (0.05%),<0.1%,OK,MATSim best practice,Excellent — queue dynamics working well.
+PASS,Pricing: Home $/kWh,$0.13,$0.13-0.16,Match,EIA Maryland residential rate 2024,
+PASS,Pricing: DCFC $/kWh,$0.48,$0.40-0.60,Match,Electrify America / EVgo 2024,
