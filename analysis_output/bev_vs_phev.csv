@@ -1,0 +1,3 @@
+ev_type,agents,agents_charged,avg_sessions,avg_kwh,pct_home,pct_work,pct_public
+BEV,91103,21559,0.26,1.51,40.4,22.0,37.6
+PHEV,39734,12840,0.37,1.13,28.1,18.4,53.5

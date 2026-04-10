@@ -1,0 +1,4 @@
+charger_type,sessions,avg_kwh,median_kwh,total_kwh
+home,13818,2.60,1.75,35881.3
+work,7978,10.17,5.71,81141.4
+public,16894,3.91,1.28,66022.1
