@@ -202,14 +202,36 @@ public class GotEVMain {
         });
 
         // ── Scoring function ──────────────────────────────────────────────────
-        // Todo: replace with CharyparNagelScoringFunctionFactory when calibrated params available
+        // Combined Charypar-Nagel (standard MATSim) + EV charging scoring.
+        // Charypar-Nagel teaches: performing activities is valuable, travel has cost,
+        //   being late is penalized, getting stuck is catastrophic.
+        // ChargingBehaviourScoring teaches: keep battery charged, charge at home,
+        //   avoid range anxiety, minimize charging cost.
+        // Both are additive — agents learn to balance daily schedule WITH charging.
+        // This follows the standard pattern used in all published MATSim EV papers
+        // (Bischoff/TU Berlin 2019, Jäger/ETH 2022).
+        final org.matsim.core.scoring.functions.ScoringParametersForPerson scoringParamsForPerson =
+                new org.matsim.core.scoring.functions.SubpopulationScoringParameters(scenario);
+
         controler.setScoringFunctionFactory(new ScoringFunctionFactory() {
             @Override
             public ScoringFunction createNewScoringFunction(Person person) {
-                ChargingBehaviourScoringParameters params =
-                        new ChargingBehaviourScoringParameters.Builder(scenario).build();
+                org.matsim.core.scoring.functions.ScoringParameters cnParams =
+                        scoringParamsForPerson.getScoringParameters(person);
+
                 SumScoringFunction sum = new SumScoringFunction();
-                sum.addScoringFunction(new ChargingBehaviourScoring(params, person));
+
+                // Standard Charypar-Nagel components (from planCalcScore config)
+                sum.addScoringFunction(new org.matsim.core.scoring.functions.CharyparNagelActivityScoring(cnParams));
+                sum.addScoringFunction(new org.matsim.core.scoring.functions.CharyparNagelLegScoring(cnParams, scenario.getNetwork()));
+                sum.addScoringFunction(new org.matsim.core.scoring.functions.CharyparNagelMoneyScoring(cnParams));
+                sum.addScoringFunction(new org.matsim.core.scoring.functions.CharyparNagelAgentStuckScoring(cnParams));
+
+                // EV-specific charging scoring (additive)
+                ChargingBehaviourScoringParameters evParams =
+                        new ChargingBehaviourScoringParameters.Builder(scenario).build();
+                sum.addScoringFunction(new ChargingBehaviourScoring(evParams, person));
+
                 return sum;
             }
         });

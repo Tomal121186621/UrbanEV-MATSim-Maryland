@@ -379,7 +379,7 @@
     <!-- ~~~ Value of time ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <param name="baseValueOfTimeFactor" value="0.4"/>
     <param name="queueAnnoyanceFactor" value="2.0"/>
-    <param name="detourDisutilityPerHour" value="-6.0"/>
+    <param name="detourDisutilityPerHour" value="0.0"/>
 
     <!-- ~~~ Agent heterogeneity ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
     <param name="usePersonLevelParams" value="true"/>
