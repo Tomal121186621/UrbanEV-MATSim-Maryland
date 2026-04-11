@@ -159,101 +159,21 @@ public class ChangeChargingBehaviourModule implements PlanStrategyModule, Chargi
      *
      * @see UrbanEVConfigGroup#getChargingCostSensitivity()
      */
+    /**
+     * Pure random mutation: pick a random activity and add " charging".
+     * No cost weighting, no smart initialization, no assumptions.
+     * The SCORING FUNCTION teaches the agent which locations are best:
+     *   - Home charging scores +2.5 bonus + low cost → agent keeps it
+     *   - Public charging scores high cost penalty → agent drops it
+     *   - Work charging scores free → agent keeps it
+     * Pure co-evolutionary learning from data-calibrated scoring.
+     */
     private void addChargingActivity(List<PlanElement> planElements, ArrayList<Integer> noChargingActIds) {
         int n = noChargingActIds.size();
         if (n == 0) return;
 
-        // ── Option C: Smart home charging initialization ──────────────────────
-        // If agent has a home charger but NO home charging in their plan,
-        // add home charging first. Mirrors real behavior: EV owners with home
-        // chargers plug in at home by default from day one.
-        // Agent can still REMOVE home charging in later iterations if it
-        // doesn't score well (but it will, because homeChargingUtility=+2.5).
-        Person person = null;
-        if (planElements.size() > 0 && planElements.get(0) instanceof Activity) {
-            // Find the person from the plan
-            for (PlanElement pe : planElements) {
-                if (pe instanceof Activity) {
-                    // Check via population lookup
-                    break;
-                }
-            }
-        }
-        // Check if plan has home charging already
-        boolean hasHomeCharging = false;
-        boolean hasHomeCharger = false;
-        int lastHomeIdx = -1;
-        for (int i = 0; i < planElements.size(); i++) {
-            PlanElement pe = planElements.get(i);
-            if (pe instanceof Activity) {
-                Activity act = (Activity) pe;
-                String t = act.getType();
-                if (t.startsWith("home") && t.contains("charging")) {
-                    hasHomeCharging = true;
-                }
-                if (t.equals("home") && noChargingActIds.contains(i)) {
-                    lastHomeIdx = i;
-                }
-            }
-        }
-        // Check if agent has home charger via plan's person attributes
-        if (!hasHomeCharging && lastHomeIdx >= 0) {
-            // Try to find homeChargerPower from person attributes
-            // The plan belongs to a person - access via scenario population
-            try {
-                Activity firstAct = (Activity) planElements.get(0);
-                // We can check by looking for home charger existence:
-                // noChargingActIds contains a "home" activity → likely has home charger
-                // since private chargers are created for agents with homeChargerPower > 0
-                hasHomeCharger = true; // conservative: assume home activity = has charger
-                // The scoring function will penalize if no charger exists at location
-            } catch (Exception ignored) {}
-        }
-        if (!hasHomeCharging && hasHomeCharger && lastHomeIdx >= 0) {
-            Activity homeAct = (Activity) planElements.get(lastHomeIdx);
-            homeAct.setType(homeAct.getType() + CHARGING_IDENTIFIER);
-            return; // done — skip random selection this time
-        }
-        // ── End Option C ──────────────────────────────────────────────────────
-
-        double beta = evCfg.getChargingCostSensitivity(); // default 3.0
-
-        // Calculate cost-weighted probabilities for each candidate
-        double[] weights = new double[n];
-        double totalWeight = 0;
-
-        for (int i = 0; i < n; i++) {
-            int actId = noChargingActIds.get(i);
-            Activity act = (Activity) planElements.get(actId);
-            String actType = act.getType();
-
-            // Estimate per-kWh charging cost at this location type
-            double costPerKwh;
-            if (actType.startsWith("home")) {
-                costPerKwh = evCfg.getHomeChargingCost();       // $0.13
-            } else if (actType.startsWith("work")) {
-                costPerKwh = evCfg.getWorkChargingCost();       // $0.00
-            } else {
-                costPerKwh = evCfg.getPublicL2Cost();           // $0.25
-            }
-
-            // Softmax: lower cost → higher weight
-            weights[i] = Math.exp(-beta * costPerKwh);
-            totalWeight += weights[i];
-        }
-
-        // Weighted random selection
-        double r = random.nextDouble() * totalWeight;
-        double cumulative = 0;
-        int selectedIdx = 0;
-        for (int i = 0; i < n; i++) {
-            cumulative += weights[i];
-            if (r <= cumulative) {
-                selectedIdx = i;
-                break;
-            }
-        }
-
+        // Pure random selection — no weights, no bias
+        int selectedIdx = random.nextInt(n);
         int actId = noChargingActIds.get(selectedIdx);
         Activity selectedActivity = (Activity) planElements.get(actId);
         selectedActivity.setType(selectedActivity.getType() + CHARGING_IDENTIFIER);

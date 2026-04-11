@@ -304,7 +304,16 @@ def _fmt_time(seconds: int) -> str:
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
+NUM_DAYS = 2  # Number of days to replicate in the plan
+
+
 def write_person_xml(f, person_info: dict, trips: list):
+    """Write a multi-day plan by replicating daily activities with 24h offsets.
+
+    Each day copies the same trip chain. No ' charging' suffix — agents
+    discover charging purely through the co-evolutionary scoring loop.
+    Overnight gaps between days allow home charging to emerge naturally.
+    """
     pid = person_info["person_id"]
     f.write(f'  <person id="{pid}">\n')
     f.write('    <attributes>\n')
@@ -331,26 +340,49 @@ def write_person_xml(f, person_info: dict, trips: list):
     f.write('    </attributes>\n')
     f.write('    <plan selected="yes">\n')
 
-    first = trips[0]
-    act_type = matsim_activity(first["o_activity"])
-    end_sec = hhmm_to_seconds(first["departure_hhmm"])
-    f.write(f'      <activity type="{act_type}" '
-            f'x="{first["o_x"]:.4f}" y="{first["o_y"]:.4f}" '
-            f'end_time="{_fmt_time(end_sec)}"/>\n')
+    for day in range(NUM_DAYS):
+        offset = day * 86400  # 24 hours in seconds
 
-    for idx, trip in enumerate(trips):
-        mode = "car" if trip["travel_mode"] == 4 else "walk"
-        f.write(f'      <leg mode="{mode}"/>\n')
-        d_act = matsim_activity(trip["d_activity"])
-        dx, dy = trip["d_x"], trip["d_y"]
-        if idx < len(trips) - 1:
-            next_dep = hhmm_to_seconds(trips[idx + 1]["departure_hhmm"])
-            f.write(f'      <activity type="{d_act}" '
-                    f'x="{dx:.4f}" y="{dy:.4f}" '
-                    f'end_time="{_fmt_time(next_dep)}"/>\n')
+        # First activity of the day: origin of trip 1
+        first = trips[0]
+        act_type = matsim_activity(first["o_activity"])
+        end_sec = hhmm_to_seconds(first["departure_hhmm"]) + offset
+
+        if day == 0:
+            # Day 1: first activity starts the plan
+            f.write(f'      <activity type="{act_type}" '
+                    f'x="{first["o_x"]:.4f}" y="{first["o_y"]:.4f}" '
+                    f'end_time="{_fmt_time(end_sec)}"/>\n')
         else:
-            f.write(f'      <activity type="{d_act}" '
-                    f'x="{dx:.4f}" y="{dy:.4f}"/>\n')
+            # Day 2+: connect from previous day's last activity via walk leg
+            f.write(f'      <leg mode="walk"/>\n')
+            f.write(f'      <activity type="{act_type}" '
+                    f'x="{first["o_x"]:.4f}" y="{first["o_y"]:.4f}" '
+                    f'end_time="{_fmt_time(end_sec)}"/>\n')
+
+        for idx, trip in enumerate(trips):
+            mode = "car" if trip["travel_mode"] == 4 else "walk"
+            f.write(f'      <leg mode="{mode}"/>\n')
+            d_act = matsim_activity(trip["d_activity"])
+            dx, dy = trip["d_x"], trip["d_y"]
+
+            if idx < len(trips) - 1:
+                next_dep = hhmm_to_seconds(trips[idx + 1]["departure_hhmm"]) + offset
+                f.write(f'      <activity type="{d_act}" '
+                        f'x="{dx:.4f}" y="{dy:.4f}" '
+                        f'end_time="{_fmt_time(next_dep)}"/>\n')
+            else:
+                # Last trip of this day
+                if day < NUM_DAYS - 1:
+                    # Not the final day: set end_time to next morning departure
+                    next_morning = hhmm_to_seconds(trips[0]["departure_hhmm"]) + (day + 1) * 86400
+                    f.write(f'      <activity type="{d_act}" '
+                            f'x="{dx:.4f}" y="{dy:.4f}" '
+                            f'end_time="{_fmt_time(next_morning)}"/>\n')
+                else:
+                    # Final day: no end_time (agent stays until sim ends)
+                    f.write(f'      <activity type="{d_act}" '
+                            f'x="{dx:.4f}" y="{dy:.4f}"/>\n')
 
     f.write('    </plan>\n')
     f.write('  </person>\n')
