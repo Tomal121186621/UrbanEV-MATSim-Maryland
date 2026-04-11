@@ -49,10 +49,14 @@ public class ChargingModule extends AbstractModule {
 
 			@Override
 			public ChargingLogic.Factory get() {
-				// Target 85% SoC (weighted average: Tesla 84%, non-Tesla 88%, PHEV 100%)
-				// Based on Xu et al. 2023 Nature Energy; Figenbaum 2016
-				// Agents rarely charge to 100% daily — manufacturer-recommended 80-90%
-				return charger -> new ChargingLogicImpl(charger, new ChargeUpToMaxSocStrategy(charger, 0.85),
+				// Target 100% — agent charges until full OR activity ends (whichever first).
+				// Activity duration naturally limits how much energy is delivered:
+				//   45 min shopping → ~5 kWh partial charge
+				//   8 hr work day → ~50 kWh near-full
+				//   11 hr overnight → full battery
+				// The overnight model between iterations handles per-vehicle target
+				// distribution (Tesla 80%, non-Tesla 80-100%, PHEV 100%).
+				return charger -> new ChargingLogicImpl(charger, new ChargeUpToMaxSocStrategy(charger, 1.0),
 						eventsManager);
 			}
 		});
