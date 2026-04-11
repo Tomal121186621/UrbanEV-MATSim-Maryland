@@ -307,8 +307,12 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
 
         List<Coord> existingChargingCoords = collectExistingChargingCoords(plan);
 
-        List<ChargerCandidate> dcfcCandidates = new ArrayList<>();
-        List<ChargerCandidate> l2Candidates = new ArrayList<>();
+        // Collect ALL charger candidates — no preference for DCFC vs L2.
+        // The scoring function teaches agents which type is better:
+        //   DCFC → short stop → less Charypar-Nagel time penalty → agent keeps it
+        //   L2 → long stop → more time penalty → agent drops it
+        // Pure exploration — no assumptions about charger type preference.
+        List<ChargerCandidate> candidates = new ArrayList<>();
 
         int searchLimit = Math.max(MIN_ROUTE_LINKS, (int) (linkIds.size() * 0.90));
 
@@ -325,30 +329,12 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
 
                 if (tooCloseToExistingStop(charger.getCoord(), existingChargingCoords)) continue;
 
-                ChargerCandidate candidate = new ChargerCandidate(charger, li, linkCoord);
-                if (isDcfc(charger)) {
-                    dcfcCandidates.add(candidate);
-                } else {
-                    l2Candidates.add(candidate);
-                }
+                candidates.add(new ChargerCandidate(charger, li, linkCoord));
             }
         }
 
-        // Prefer DCFC; fall back to L2 only when no DCFC found
-        List<ChargerCandidate> chosen = dcfcCandidates.isEmpty() ? l2Candidates : dcfcCandidates;
-
-        if (!dcfcCandidates.isEmpty() && !l2Candidates.isEmpty()) {
-            log.info(String.format(
-                    "InsertEnRoute: found %d DCFC + %d L2 candidates — selecting from DCFC",
-                    dcfcCandidates.size(), l2Candidates.size()));
-        } else if (dcfcCandidates.isEmpty() && !l2Candidates.isEmpty()) {
-            log.info(String.format(
-                    "InsertEnRoute: no DCFC found, falling back to %d L2 candidates",
-                    l2Candidates.size()));
-        }
-
-        chosen.sort(Comparator.comparingInt(c -> c.routeLinkIdx));
-        return chosen;
+        candidates.sort(Comparator.comparingInt(c -> c.routeLinkIdx));
+        return candidates;
     }
 
     private List<Coord> collectExistingChargingCoords(Plan plan) {
@@ -377,43 +363,17 @@ class InsertEnRouteChargingModule implements PlanStrategyModule, ChargingBehavio
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Selects a {@link ChargerCandidate} from the sorted list according to the
-     * agent's risk attitude:
-     *
-     * <ul>
-     *   <li><b>averse</b>  – picks from the earliest 25 % of candidates (charge early,
-     *       maximise safety buffer).</li>
-     *   <li><b>seeking</b> – picks from the latest 25 % of candidates (defer charging,
-     *       accept higher risk).</li>
-     *   <li><b>moderate</b> – picks uniformly from the middle 50 %.</li>
-     * </ul>
-     *
-     * The list is assumed to be sorted by {@code routeLinkIdx} ascending.
+     * Selects a charger candidate by pure random selection.
+     * No risk-attitude bias — the scoring function teaches agents which
+     * positions along the route work best:
+     *   - Too late → battery dies → empty battery penalty (-40) → agent learns to stop earlier
+     *   - Too early → unnecessary detour → Charypar-Nagel time penalty → agent learns to stop later
+     *   - Right spot → minimal penalty → agent keeps this plan
      */
     private ChargerCandidate selectCandidate(List<ChargerCandidate> candidates,
                                              String riskAttitude) {
         int n = candidates.size();
-        int selectedIdx;
-
-        switch (riskAttitude) {
-            case "averse":
-                // First quarter — earliest along the route
-                selectedIdx = random.nextInt(Math.max(1, n / 4));
-                break;
-            case "seeking":
-                // Last quarter — latest along the route
-                selectedIdx = (n - 1) - random.nextInt(Math.max(1, n / 4));
-                break;
-            default: // "moderate"
-                // Middle half
-                int start = n / 4;
-                int range = Math.max(1, n / 2);
-                selectedIdx = start + random.nextInt(range);
-                break;
-        }
-
-        // Clamp to valid range (edge case when n is very small)
-        selectedIdx = Math.max(0, Math.min(selectedIdx, n - 1));
+        int selectedIdx = random.nextInt(n);
         return candidates.get(selectedIdx);
     }
 
