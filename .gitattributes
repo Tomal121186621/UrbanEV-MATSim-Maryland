@@ -1,3 +1,4 @@
 # Git LFS - large files exceeding GitHub's 100MB limit
-Input[[:space:]]Files/maryland-dc-ev-network.xml.gz filter=lfs diff=lfs merge=lfs -text
-Input[[:space:]]Files/plans_maryland_ev.xml.gz filter=lfs diff=lfs merge=lfs -text
+input/maryland-dc-ev-network.xml.gz filter=lfs diff=lfs merge=lfs -text
+input/plans_maryland_ev.xml.gz filter=lfs diff=lfs merge=lfs -text
+input/electric_vehicles.xml filter=lfs diff=lfs merge=lfs -text

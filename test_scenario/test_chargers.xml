@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE chargers SYSTEM "../UrbanEV-v2-master/scenarios/dtd/chargers.dtd">
-<chargers>
-  <charger id="l2_1" x="215000.0" y="100000.0" type="L2" plug_power="7.2" plug_count="4"/>
-  <charger id="dcfc_1" x="220000.0" y="100000.0" type="DCFC" plug_power="150.0" plug_count="2"/>
-  <charger id="l2_2" x="230000.0" y="100000.0" type="L2" plug_power="7.2" plug_count="4"/>
-  <charger id="dcfc_2" x="240000.0" y="100000.0" type="DCFC" plug_power="150.0" plug_count="2"/>
-  <charger id="l2_3" x="245000.0" y="100000.0" type="L2" plug_power="7.2" plug_count="4"/>
-</chargers>
